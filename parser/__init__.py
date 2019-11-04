@@ -20,6 +20,15 @@ def parse(commandline):
             # CREATE DATABASE database_name;
             if action[1].upper() == 'DATABASE':
                 createDatabase(action)
+            elif action[1].upper() == 'TABLE':
+                name=action[2].split('.')
+
+                database_name=name[0]
+                table_name=name[1]
+                table_info=action[3:]
+                
+
+                createTable(database_name, table_name, table_info)
             else:
                 raise Exception('ERROR: Only accept CREATE DATABASE.')
         
@@ -55,6 +64,17 @@ def createDatabase(action):
 
     else:
         raise Exception('ERROR: Invalid command.')
+
+# CREATE TABLE database_name.table_name (column_name1 data_type, column_name2 data_type)
+def createTable(database_name, table_name, table_info):
+    print(database_name)
+    database_dir='./ZibiDB/database/'+database_name
+
+    # Check database
+    if not os.path.exists(database_dir):
+        raise Exception('ERROR: '+database_name.upper()+' is invalid database.')
+    print(table_name)
+    print(table_info)
 
 # DROP DATABASE test;
 def dropDatabase(action):
