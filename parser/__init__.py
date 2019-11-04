@@ -26,7 +26,6 @@ def parse(commandline):
                 database_name=name[0]
                 table_name=name[1]
                 table_info=action[3:]
-                
 
                 createTable(database_name, table_name, table_info)
             else:
