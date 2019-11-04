@@ -1,4 +1,5 @@
 import os
+import shutil
 
 # pattern
 
@@ -20,16 +21,27 @@ def parse(commandline):
             if action[1].upper() == 'DATABASE':
                 createDatabase(action)
             else:
-                raise Exception('ERROR: Only accept CREATE DATABAS.')
+                raise Exception('ERROR: Only accept CREATE DATABASE.')
+        
+        elif action[0].upper() == 'DROP':
+            if action[1].upper() == 'DATABASE':
+                dropDatabase(action)
+            else:
+                raise Exception('ERROR: Only accept DROP DATABASE.')
                 
         else:
-            raise Exception('Only accept exit and create database command now ~~~~ : p')
+            raise Exception('Only accept exit, drop database, and create database command now ~~~~ : p')
 
     return action
 
+# CREATE DATABASE test;
 def createDatabase(action):
-    database = action[2].replace(';', '')
+    database = action[2].replace(';', '').lower()
     _database='./ZibiDB/database/'
+
+    # If the database directory is exist, pass
+    if not os.path.exists(_database):
+        os.makedirs(_database)
 
     # If the database is exist, ERROR
     if os.path.exists(_database+database):
@@ -40,6 +52,28 @@ def createDatabase(action):
         os.makedirs(_database+database)
         print('PASS: The database is created.')
         return
+
+    else:
+        raise Exception('ERROR: Invalid command.')
+
+# DROP DATABASE test;
+def dropDatabase(action):
+    database = action[2].replace(';', '').lower()
+    _database='./ZibiDB/database/'
+
+    # If the database directory is exist, pass
+    if not os.path.exists(_database):
+        raise Exception('ERROR: No any databases')
+
+    # If the database is exist, drop and PASS
+    if os.path.exists(_database+database):
+        shutil.rmtree(_database+database)
+        print('PASS: The database is dropped.')
+        return
+        
+    # If the database is not exist, ERROR
+    elif not os.path.exists(_database+database):
+        raise Exception('ERROR: The file is not exist.')
 
     else:
         raise Exception('ERROR: Invalid command.')

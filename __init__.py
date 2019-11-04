@@ -7,7 +7,7 @@ class Engine:
     def start(self):
 
         # continue running until recieve the exit command.
-       for i in range(1):
+       while True:
             commandline = input('ZibiDB>')
             try:
                 result = self.execute(commandline)
