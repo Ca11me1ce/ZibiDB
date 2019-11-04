@@ -13,6 +13,12 @@ def parse(commandline):
         action = 'exit'
     else:
         action = commandline.split(' ')
+        while True:
+            if '' not in action:
+                break
+            action.remove('')
+
+        # print(action)
 
         # CREATE
         if action[0].upper() == 'CREATE':
@@ -53,7 +59,7 @@ def createDatabase(action):
 
     # If the database is exist, ERROR
     if os.path.exists(_database+database):
-        raise Exception('ERROR: The file is exist already.')
+        raise Exception('ERROR: The database is exist already.')
         
     # If the database is not exist, create and PASS
     elif not os.path.exists(_database+database):
@@ -92,7 +98,7 @@ def dropDatabase(action):
         
     # If the database is not exist, ERROR
     elif not os.path.exists(_database+database):
-        raise Exception('ERROR: The file is not exist.')
+        raise Exception('ERROR: The database is not exist.')
 
     else:
         raise Exception('ERROR: Invalid command.')
