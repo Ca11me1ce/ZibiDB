@@ -2,6 +2,7 @@ import os
 import shutil
 import csv
 import json
+import pandas
 
 # pattern
 
@@ -42,11 +43,14 @@ def parse(commandline):
         elif action[0].upper() == 'DROP':
             if action[1].upper() == 'DATABASE':
                 dropDatabase(action)
+            elif action[1].upper() == 'TABLE':
+                name=action[2].split('.')
+                dropTable(name[0], name[1])
             else:
                 raise Exception('ERROR: Only accept DROP DATABASE.')
                 
         else:
-            raise Exception('Only accept exit, drop database, and create database command now ~~~~ : p')
+            raise Exception('Only accept exit, drop database/table, and create database/table command now ~~~~ : p')
 
     return action
 
@@ -118,61 +122,65 @@ def createTable(database_name, table_name, table_info):
     
     # Get primary key
     primary_key=[]
-    if table_info[0].upper()=='PRIMARY_KEY':
-        table_info.pop(0)   # Pop PRIMARY_KEY
-        if '(' in table_info[0] and ')' in table_info[0]:
-            tmp=table_info.pop(0).replace('(', '').replace(')', '')
-            primary_key.append(tmp)
-        else:
-            while True:
-                if '(' in table_info[0]:
-                    primary_key.append(table_info.pop(0).replace('(', '').strip().lower())
-                elif ')' in table_info[0]:
-                    primary_key.append(table_info.pop(0).replace(')', '').strip().lower())
-                    break
-                else:
-                    primary_key.append(table_info.pop(0).strip().lower())
+    if table_info:
+        if table_info[0].upper()=='PRIMARY_KEY':
+            table_info.pop(0)   # Pop PRIMARY_KEY
+            if '(' in table_info[0] and ')' in table_info[0]:
+                tmp=table_info.pop(0).replace('(', '').replace(')', '')
+                primary_key.append(tmp)
+            else:
+                while True:
+                    if '(' in table_info[0]:
+                        primary_key.append(table_info.pop(0).replace('(', '').strip().lower())
+                    elif ')' in table_info[0]:
+                        primary_key.append(table_info.pop(0).replace(')', '').strip().lower())
+                        break
+                    else:
+                        primary_key.append(table_info.pop(0).strip().lower())
 
+    # print(primary_key)
     # Get foreign key
     foreign_key=[]
-    if table_info[0].upper()=='FOREIGN_KEY':
-        table_info.pop(0)   # Pop foreign_key
-        if '(' in table_info[0] and ')' in table_info[0]:
-            tmp=table_info.pop(0).replace('(', '').replace(')', '')
-            foreign_key.append(tmp)
-        else:
-            while True:
-                if '(' in table_info[0]:
-                    foreign_key.append(table_info.pop(0).replace('(', '').strip().lower())
-                elif ')' in table_info[0]:
-                    foreign_key.append(table_info.pop(0).replace(')', '').strip().lower())
-                    break
-                else:
-                    foreign_key.append(table_info.pop(0).strip().lower())
+    if table_info:
+        if table_info[0].upper()=='FOREIGN_KEY':
+            table_info.pop(0)   # Pop foreign_key
+            if '(' in table_info[0] and ')' in table_info[0]:
+                tmp=table_info.pop(0).replace('(', '').replace(')', '')
+                foreign_key.append(tmp)
+            else:
+                while True:
+                    if '(' in table_info[0]:
+                        foreign_key.append(table_info.pop(0).replace('(', '').strip().lower())
+                    elif ')' in table_info[0]:
+                        foreign_key.append(table_info.pop(0).replace(')', '').strip().lower())
+                        break
+                    else:
+                        foreign_key.append(table_info.pop(0).strip().lower())
 
     # print(primary_key)
     # print(foreign_key)
     ref_database=''
     ref_table=''
     ref_columns=[]
-    if table_info[0].upper()=='REFERENCES':
-        table_info.pop(0)   # Pop REFERENCES
-        ref_name=table_info.pop(0).split('.')
-        ref_database=ref_name[0]
-        ref_table=ref_name[1]
+    if table_info:
+        if table_info[0].upper()=='REFERENCES':
+            table_info.pop(0)   # Pop REFERENCES
+            ref_name=table_info.pop(0).split('.')
+            ref_database=ref_name[0]
+            ref_table=ref_name[1]
 
-        if '(' in table_info[0] and ')' in table_info[0]:
-            tmp=table_info.pop(0).replace('(', '').replace(')', '')
-            ref_columns.append(tmp)
-        else:
-            while True:
-                if '(' in table_info[0]:
-                    ref_columns.append(table_info.pop(0).replace('(', '').strip().lower())
-                elif ')' in table_info[0]:
-                    ref_columns.append(table_info.pop(0).replace(')', '').strip().lower())
-                    break
-                else:
-                    ref_columns.append(table_info.pop(0).strip().lower())
+            if '(' in table_info[0] and ')' in table_info[0]:
+                tmp=table_info.pop(0).replace('(', '').replace(')', '')
+                ref_columns.append(tmp)
+            else:
+                while True:
+                    if '(' in table_info[0]:
+                        ref_columns.append(table_info.pop(0).replace('(', '').strip().lower())
+                    elif ')' in table_info[0]:
+                        ref_columns.append(table_info.pop(0).replace(')', '').strip().lower())
+                        break
+                    else:
+                        ref_columns.append(table_info.pop(0).strip().lower())
 
     # print(ref_database)
     # print(ref_table)
@@ -207,8 +215,6 @@ def createTable(database_name, table_name, table_info):
 
     print('PASS: The schema is created.')
             
-
-
 # DROP DATABASE test;
 def dropDatabase(action):
     database = action[2].replace(';', '').lower()
@@ -230,3 +236,23 @@ def dropDatabase(action):
 
     else:
         raise Exception('ERROR: Invalid command.')
+
+# DROP TABLE database_name.table_name;
+def dropTable(database_name, table_name):
+    print(database_name)
+    print(table_name)
+
+    database_dir='./ZibiDB/database/'+database_name
+
+    # Check database
+    if not os.path.exists(database_dir):
+        raise Exception('ERROR: '+database_name.upper()+' is invalid database.')
+
+    if not os.path.exists(database_dir+'/'+table_name+'.json') and not os.path.exists(database_dir+'/'+table_name+'.csv'):
+        raise Exception('ERROR: '+table_name.upper()+' is not exist schema.')
+
+    os.remove(database_dir+'/'+table_name+'.json')
+    os.remove(database_dir+'/'+table_name+'.csv')
+
+    print('PASS: The schema is dropped.')
+
