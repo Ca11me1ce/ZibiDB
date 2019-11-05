@@ -1,5 +1,7 @@
 import os
 import shutil
+import csv
+import json
 
 # pattern
 
@@ -71,9 +73,9 @@ def createDatabase(action):
         raise Exception('ERROR: Invalid command.')
 
 # CREATE TABLE database_name.table_name (column_name1 data_type not_null, column_name2 data_type null) primary_key (column_name1);
-# CREATE TABLE database_name.table_name (column_name1 data_type not_null, column_name2 data_type null) primary_key (column_name1, column_name2);
+# CREATE TABLE database_name.table_name (column_name1 data_type not_null, column_name2 data_type null) primary_key (column_name1, column_name2) foreign_key (column_name_f, column_namef1) references database_name.table_name (column_name);
 def createTable(database_name, table_name, table_info):
-    print(database_name)
+    # print(database_name)
     database_dir='./ZibiDB/database/'+database_name
 
     # Check database
@@ -116,7 +118,8 @@ def createTable(database_name, table_name, table_info):
     
     # Get primary key
     primary_key=[]
-    if table_info.pop(0).upper()=='PRIMARY_KEY':
+    if table_info[0].upper()=='PRIMARY_KEY':
+        table_info.pop(0)   # Pop PRIMARY_KEY
         if '(' in table_info[0] and ')' in table_info[0]:
             tmp=table_info.pop(0).replace('(', '').replace(')', '')
             primary_key.append(tmp)
@@ -130,8 +133,79 @@ def createTable(database_name, table_name, table_info):
                 else:
                     primary_key.append(table_info.pop(0).strip().lower())
 
-    print(primary_key)
-    print(table_info)
+    # Get foreign key
+    foreign_key=[]
+    if table_info[0].upper()=='FOREIGN_KEY':
+        table_info.pop(0)   # Pop foreign_key
+        if '(' in table_info[0] and ')' in table_info[0]:
+            tmp=table_info.pop(0).replace('(', '').replace(')', '')
+            foreign_key.append(tmp)
+        else:
+            while True:
+                if '(' in table_info[0]:
+                    foreign_key.append(table_info.pop(0).replace('(', '').strip().lower())
+                elif ')' in table_info[0]:
+                    foreign_key.append(table_info.pop(0).replace(')', '').strip().lower())
+                    break
+                else:
+                    foreign_key.append(table_info.pop(0).strip().lower())
+
+    # print(primary_key)
+    # print(foreign_key)
+    ref_database=''
+    ref_table=''
+    ref_columns=[]
+    if table_info[0].upper()=='REFERENCES':
+        table_info.pop(0)   # Pop REFERENCES
+        ref_name=table_info.pop(0).split('.')
+        ref_database=ref_name[0]
+        ref_table=ref_name[1]
+
+        if '(' in table_info[0] and ')' in table_info[0]:
+            tmp=table_info.pop(0).replace('(', '').replace(')', '')
+            ref_columns.append(tmp)
+        else:
+            while True:
+                if '(' in table_info[0]:
+                    ref_columns.append(table_info.pop(0).replace('(', '').strip().lower())
+                elif ')' in table_info[0]:
+                    ref_columns.append(table_info.pop(0).replace(')', '').strip().lower())
+                    break
+                else:
+                    ref_columns.append(table_info.pop(0).strip().lower())
+
+    # print(ref_database)
+    # print(ref_table)
+    # print(ref_columns)
+    ref_info=[{'database': ref_database}, {'schema': ref_table}, {'columns': ref_columns}]
+
+    attrs_ls=[]
+    for i in range(len(attrs)):
+        attrs_ls.append({
+            attrs[i]:[_type[i], null_status[i]]
+        })
+
+    
+
+    info=[{
+        'Attributes':attrs_ls,
+        # 'Types': _type,
+        # 'Null_status': null_status,
+        'Primary_key': primary_key,
+        'Foreign_key': foreign_key,
+        'Reference': ref_info
+    }]
+    # print(info)
+    # print(table_info)
+    with open(database_dir+'/'+table_name+'.json', 'w') as f:
+        json.dump({table_name: info}, f)
+        f.close()
+    with open(database_dir+'/'+table_name+'.csv', 'w') as f:
+        writer=csv.writer(f)
+        writer.writerow(attrs)
+        f.close()
+
+    print('PASS: The schema is created.')
             
 
 
