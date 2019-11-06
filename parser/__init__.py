@@ -40,6 +40,7 @@ def parse(commandline):
             else:
                 raise Exception('ERROR: Only accept CREATE DATABASE.')
         
+        # DROP
         elif action[0].upper() == 'DROP':
             if action[1].upper() == 'DATABASE':
                 dropDatabase(action)
@@ -114,11 +115,34 @@ def createTable(database_name, table_name, table_info):
         tmp=i.strip().split(' ')
         attrs.append(tmp[0].lower())
         _type.append(tmp[1].upper())
-        try: null_status.append(tmp[2].upper())
-        except: null_status.append('')
-        
-        try: unique_status.append(tmp[3].upper())
-        except: unique_status.append('')
+
+        # TODO: Parse null, unique, and constrains
+
+        # There is null or/and unique status
+        if len(tmp)==3: 
+            # print(tmp)
+            if tmp[2].upper()=='NOT_NULL' or tmp[2].upper()=='NULL':
+                null_status.append(tmp[2].upper())
+                unique_status.append('')
+
+            elif tmp[2].upper()=='UNIQUE' or tmp[2].upper()=='NOT_UNIQUE':
+                unique_status.append(tmp[2].upper())
+                null_status.append('')
+                    
+        # Only have (attrs and type)
+        elif len(tmp)==2:
+            null_status.append('')
+            unique_status.append('')
+        elif len(tmp)==4:
+            if tmp[2].upper()!='NOT_NULL' and tmp[2].upper()!='NULL': raise Exception('ERROR: Invalid syntax.')
+            if tmp[3].upper()!='NOT_UNIQUE' and tmp[3].upper()!='UNIQUE': raise Exception('ERROR: Invalid syntax.')
+            null_status.append(tmp[2].upper())
+            unique_status.append(tmp[3].upper())
+        else:
+            raise Exception('ERROR: Invalid syntax.')
+
+    # print('null', null_status)
+    # print('unique', unique_status)
 
     # print(table_attrs)
     # print(attrs)
@@ -202,8 +226,6 @@ def createTable(database_name, table_name, table_info):
             }]
         })
 
-    
-
     info=[{
         'Attributes':attrs_ls,
         # 'Types': _type,
@@ -212,8 +234,8 @@ def createTable(database_name, table_name, table_info):
         'Foreign_key': foreign_key,
         'Reference': ref_info
     }]
+
     # print(info)
-    # print(table_info)
     with open(database_dir+'/'+table_name+'.json', 'w') as f:
         json.dump({table_name: info}, f)
         f.close()
@@ -248,8 +270,8 @@ def dropDatabase(action):
 
 # DROP TABLE database_name.table_name;
 def dropTable(database_name, table_name):
-    print(database_name)
-    print(table_name)
+    # print(database_name)
+    # print(table_name)
 
     database_dir='./ZibiDB/database/'+database_name
 
