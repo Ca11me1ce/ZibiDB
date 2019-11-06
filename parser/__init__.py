@@ -75,9 +75,12 @@ def createDatabase(action):
 
     else:
         raise Exception('ERROR: Invalid command.')
+'''
+CREATE TABLE database_name.table_name (column_name1 data_type not_null, column_name2 data_type null) primary_key (column_name1);
+CREATE TABLE database_name.table_name (column_name1 data_type not_null, column_name2 data_type null) primary_key (column_name1, column_name2) foreign_key (column_name_f, column_namef1) references database_name.table_name (column_name);
+CREATE TABLE database_name.table_name (column_name1 data_type not_null unique, column_name2 data_type null) primary_key (column_name1, column_name2) foreign_key (column_name_f, column_namef1) references database_name.table_name (column_name);
 
-# CREATE TABLE database_name.table_name (column_name1 data_type not_null, column_name2 data_type null) primary_key (column_name1);
-# CREATE TABLE database_name.table_name (column_name1 data_type not_null, column_name2 data_type null) primary_key (column_name1, column_name2) foreign_key (column_name_f, column_namef1) references database_name.table_name (column_name);
+'''
 def createTable(database_name, table_name, table_info):
     # print(database_name)
     database_dir='./ZibiDB/database/'+database_name
@@ -106,14 +109,16 @@ def createTable(database_name, table_name, table_info):
     attrs=[]
     _type=[]
     null_status=[]
+    unique_status=[]
     for i in table_attrs:
         tmp=i.strip().split(' ')
         attrs.append(tmp[0].lower())
         _type.append(tmp[1].upper())
-        try:
-            null_status.append(tmp[2].upper())
-        except:
-            null_status.append('')
+        try: null_status.append(tmp[2].upper())
+        except: null_status.append('')
+        
+        try: unique_status.append(tmp[3].upper())
+        except: unique_status.append('')
 
     # print(table_attrs)
     # print(attrs)
@@ -190,7 +195,11 @@ def createTable(database_name, table_name, table_info):
     attrs_ls=[]
     for i in range(len(attrs)):
         attrs_ls.append({
-            attrs[i]:[_type[i], null_status[i]]
+            attrs[i]:[{
+                'type': _type[i], 
+                'not_null': 1 if null_status[i].upper()=='NOT_NULL' else 0,
+                'unique': 1 if unique_status[i].upper()=='UNIQUE' else 0,
+            }]
         })
 
     
