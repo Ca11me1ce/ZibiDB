@@ -313,6 +313,7 @@ def dropTable(database_name, table_name):
 
     print('PASS: The schema is dropped.')
 
+# insert into notap.perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
 def insertTable(database_name, table_name, table_info):
     
     database_dir='./ZibiDB/database/'+database_name

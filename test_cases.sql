@@ -3,3 +3,5 @@ CREATE TABLE database_name.table_name (column_name1 data_type not_null unique, c
 CREATE TABLE NotAP.Person (id int not_null unique, position char not_null, name char not_null, address char not_null) primary_key (id) foreign_key (position) references NotAP.work (position_id) on_delete no_action on_update cascade;
 
 insert into notap.person (id, position, name, address) values (1, 'manager', 'Yang', 'home')
+
+insert into notap.perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
