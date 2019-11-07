@@ -36,9 +36,9 @@ def parse(commandline):
                 table_name=name[1]
                 table_info=action[3:]
 
-                createTable(database_name, table_name, table_info)
+                createTable(database_name, table_name.lower(), table_info)
             else:
-                raise Exception('ERROR: Only accept CREATE DATABASE.')
+                raise Exception('ERROR: Only accept CREATE DATABASE/TABLE.')
         
         # DROP
         elif action[0].upper() == 'DROP':
@@ -46,9 +46,19 @@ def parse(commandline):
                 dropDatabase(action)
             elif action[1].upper() == 'TABLE':
                 name=action[2].split('.')
-                dropTable(name[0], name[1])
+                dropTable(name[0], name[1].lower())
             else:
-                raise Exception('ERROR: Only accept DROP DATABASE.')
+                raise Exception('ERROR: Only accept DROP DATABASE/TABLE.')
+        
+        elif action[0].upper() == 'INSERT':
+            if action[1].upper() == 'INTO':
+                name=action[2].split('.')
+                database_name=name[0].lower()
+                table_name=name[1].lower()
+                table_info=action[3:]
+                insertTable(database_name, table_name, table_info)
+            else:
+                raise Exception('ERROR: Only accept INSERT TABLE.')
                 
         else:
             raise Exception('Only accept exit, drop database/table, and create database/table command now ~~~~ : p')
@@ -85,6 +95,7 @@ CREATE TABLE database_name.table_name (column_name1 data_type not_null unique, c
 def createTable(database_name, table_name, table_info):
     # print(database_name)
     database_dir='./ZibiDB/database/'+database_name
+    std_type=['CHAR', 'FLOAT', 'INT']
 
     # Check database
     if not os.path.exists(database_dir):
@@ -210,17 +221,32 @@ def createTable(database_name, table_name, table_info):
                         break
                     else:
                         ref_columns.append(table_info.pop(0).strip().lower())
+    on_delete='NO_ACTION'
+    if table_info:
+        if table_info[0].upper()=='ON_DELETE':
+            table_info.pop(0)    # Pop on_delete
+            on_delete=table_info.pop(0)
+
+    on_update='NO_ACTION'
+    if table_info:
+        if table_info[0].upper()=='ON_UPDATE':
+            table_info.pop(0)
+            on_update=table_info.pop(0)
+
+
 
     # print(ref_database)
     # print(ref_table)
     # print(ref_columns)
-    ref_info=[{'database': ref_database}, {'schema': ref_table}, {'columns': ref_columns}]
+    ref_info=[{'database': ref_database, 'schema': ref_table, 'columns': ref_columns, 'on_delete': on_delete.upper(), 'on_update': on_update.upper()}]
 
     attrs_ls=[]
     for i in range(len(attrs)):
+        if _type[i] not in std_type:
+            raise Exception('ERROR: Invalid type.')
         attrs_ls.append({
             attrs[i]:[{
-                'type': _type[i], 
+                'type': _type[i],
                 'not_null': 1 if null_status[i].upper()=='NOT_NULL' else 0,
                 'unique': 1 if unique_status[i].upper()=='UNIQUE' else 0,
             }]
@@ -239,7 +265,7 @@ def createTable(database_name, table_name, table_info):
     with open(database_dir+'/'+table_name+'.json', 'w') as f:
         json.dump({table_name: info}, f)
         f.close()
-    with open(database_dir+'/'+table_name+'.csv', 'w') as f:
+    with open(database_dir+'/'+table_name+'.csv', 'w', newline='') as f:
         writer=csv.writer(f)
         writer.writerow(attrs)
         f.close()
@@ -287,3 +313,46 @@ def dropTable(database_name, table_name):
 
     print('PASS: The schema is dropped.')
 
+def insertTable(database_name, table_name, table_info):
+    
+    database_dir='./ZibiDB/database/'+database_name
+    std_type=['CHAR', 'FLOAT', 'INT']
+
+    # Check database
+    if not os.path.exists(database_dir):
+        raise Exception('ERROR: '+database_name.upper()+' is invalid database.')
+    # print(table_name)
+
+    # Check schema
+    if not os.path.exists(database_dir+'/'+table_name+'.json') or not os.path.exists(database_dir+'/'+table_name+'.csv'):
+        raise Exception('ERROR: '+table_name.upper()+' is invalid schema.')
+
+    # print(database_name)
+    # print(table_name)
+    table_info=' '.join(table_info).replace(' ', '').lower()
+    if 'values' in table_info: 
+        table_info=table_info.split('values')
+    else:
+        raise Exception('ERROR: Invalid syntax.')
+
+    # print(table_info)
+    
+    attrs=table_info[0].replace('(', '').replace(')', '').split(',')
+    vals=table_info[1].replace('(', '').replace(')', '').split(',')
+    # print(attrs)
+    
+    values=[]
+    for val in vals:
+        if "'" in val:
+            values.append(val.replace("'", ''))
+        else:
+            values.append(val)
+    with open(database_dir+'/'+table_name+'.csv', 'a', newline='') as f:
+        writer=csv.writer(f)
+        writer.writerow(values)
+
+        f.close()
+    print('PASS: The data is inserted.')
+
+    # print(values)
+    
