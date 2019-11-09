@@ -419,7 +419,7 @@ def checkType(value, _type):
         return True
     elif _type=='FLOAT':
         try:value=float(value)
-        except:raise Exception('ERROR: Invalid types INT.')
+        except:raise Exception('ERROR: Invalid types FLOAT.')
         
         if type(value)!=type(1.0):
             raise Exception('ERROR: Invalid types FLOAT.')
