@@ -50,6 +50,7 @@ def parse(commandline):
             else:
                 raise Exception('ERROR: Only accept DROP DATABASE/TABLE.')
         
+        # INSERT
         elif action[0].upper() == 'INSERT':
             if action[1].upper() == 'INTO':
                 name=action[2].split('.')
@@ -317,7 +318,6 @@ def dropTable(database_name, table_name):
 def insertTable(database_name, table_name, table_info):
     
     database_dir='./ZibiDB/database/'+database_name
-    std_type=['CHAR', 'FLOAT', 'INT']
 
     # Check database
     if not os.path.exists(database_dir):
@@ -330,24 +330,74 @@ def insertTable(database_name, table_name, table_info):
 
     # print(database_name)
     # print(table_name)
-    table_info=' '.join(table_info).replace(' ', '').lower()
+    table_info=' '.join(table_info)
     if 'values' in table_info: 
         table_info=table_info.split('values')
+    elif ' values ' in table_info: 
+        table_info=table_info.split(' values ')
+    elif ' values' in table_info: 
+        table_info=table_info.split(' values')
+    elif 'values ' in table_info: 
+        table_info=table_info.split('values ')
+    elif 'VALUES' in table_info: 
+        table_info=table_info.split('VALUES')
+    elif ' VALUES ' in table_info: 
+        table_info=table_info.split(' VALUES ')
+    elif ' VALUES' in table_info: 
+        table_info=table_info.split(' VALUES')
+    elif 'VALUES ' in table_info: 
+        table_info=table_info.split('VALUES ')
     else:
         raise Exception('ERROR: Invalid syntax.')
 
     # print(table_info)
     
-    attrs=table_info[0].replace('(', '').replace(')', '').split(',')
+    _attrs=table_info[0].replace('(', '').replace(')', '').split(',')
     vals=table_info[1].replace('(', '').replace(')', '').split(',')
-    # print(attrs)
-    
+
+    attrs=[]
+    for _attr in _attrs:
+        attrs.append(_attr.strip())
+
     values=[]
     for val in vals:
         if "'" in val:
-            values.append(val.replace("'", ''))
+            values.append(val.replace("'", '').strip())
         else:
-            values.append(val)
+            values.append(val.strip())
+
+    if len(attrs)!=len(values):
+        raise Exception('ERROR: Invalid syntax.')
+
+    # print(attrs)
+    # print(values)
+
+    # Get and Parse JSON
+    with open(database_dir+'/'+table_name+'.json', 'r') as f:
+        line=f.readline().strip()
+        j=json.loads(line)
+        f.close()
+
+    keys=[]
+    _t={}
+    for attributes in j['person'][0]['Attributes']:
+
+        for attribute in attributes:
+            keys.append(attribute)
+            _t[attribute]=attributes[attribute][0]
+
+    # Check inserting keys are same with attrs of table
+    if set(keys)!=set(attrs):
+        raise Exception('ERROR: Invalid attributes.')
+
+    # Check the values have corresponding type
+    i=0
+    for attr in attrs:
+        _check=checkType(values[i], _t[attr]['type'])
+        if _check==False:
+            raise Exception('ERROR: Invalid types.')
+        i=i+1
+
     with open(database_dir+'/'+table_name+'.csv', 'a', newline='') as f:
         writer=csv.writer(f)
         writer.writerow(values)
@@ -355,5 +405,25 @@ def insertTable(database_name, table_name, table_info):
         f.close()
     print('PASS: The data is inserted.')
 
-    # print(values)
-    
+def checkType(value, _type):
+
+    if _type=='CHAR':
+        value=str(value)
+        return True
+    elif _type=='INT':
+        try:value=int(value)
+        except:raise Exception('ERROR: Invalid types INT.')
+
+        if type(value)!=type(1):
+            raise Exception('ERROR: Invalid types INT.')
+        return True
+    elif _type=='FLOAT':
+        try:value=float(value)
+        except:raise Exception('ERROR: Invalid types INT.')
+        
+        if type(value)!=type(1.0):
+            raise Exception('ERROR: Invalid types FLOAT.')
+        return True
+    else:
+        raise Exception('ERROR: Invalid types.')
+    return False
