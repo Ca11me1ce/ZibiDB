@@ -7,8 +7,11 @@ class Engine:
     def start(self):
 
         # continue running until recieve the exit command.
-       for i in range(1):
+       while True:
             commandline = input('ZibiDB>')
+            if commandline=='':
+                continue
+            commandline=commandline.replace(';', '')
             try:
                 result = self.execute(commandline)
                 if result == 'exit':

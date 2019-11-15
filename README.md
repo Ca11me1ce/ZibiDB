@@ -1,2 +1,6 @@
 # ZibiDB
-Design by Yang &amp; Yang
+Design by 
+
+```bash
+$python -m ZibiDB
+```
