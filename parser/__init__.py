@@ -220,7 +220,8 @@ def createTable(database_name, table_name, table_info):
             ref_table.append(ref_name[1])
 
             if '(' in table_info[0] and ')' in table_info[0]:
-                ref_column.append(table_info.pop(0).strip('()'))
+                ref_column.append(table_info.pop(0).strip('() '))
+                ref_columns.append(ref_column)
             else:
                 while True:
                     if '(' in table_info[0]:
@@ -231,6 +232,8 @@ def createTable(database_name, table_name, table_info):
                         break
                     else:
                         ref_column.append(table_info.pop(0).strip().lower())
+
+    # TODO: Each reference should have a on_delete and on_update
     on_delete='NO_ACTION'
     if table_info:
         if table_info[0].upper()=='ON':
