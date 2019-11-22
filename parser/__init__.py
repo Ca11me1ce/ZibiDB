@@ -98,15 +98,12 @@ def createTable(database_name, table_name, table_info):
     database_dir='./ZibiDB/database/'+database_name
     std_type=['CHAR', 'FLOAT', 'INT']
 
-    # Check database
-    if not os.path.exists(database_dir):
-        raise Exception('ERROR: '+database_name.upper()+' is invalid database.')
-    # print(table_name)
+    # Check database and schema existence
+    if not os.path.exists(database_dir):raise Exception('ERROR: '+database_name.upper()+' is invalid database.')
+    if os.path.exists(database_dir+'/'+table_name+'.json') or os.path.exists(database_dir+'/'+table_name+'.csv'):raise Exception('ERROR: '+table_name.upper()+' is exist schema.')
 
-    # Check schema
-    if os.path.exists(database_dir+'/'+table_name+'.json') or os.path.exists(database_dir+'/'+table_name+'.csv'):
-        raise Exception('ERROR: '+table_name.upper()+' is exist schema.')
-
+    # Get attributes
+    # (column_name1 data_type not_null, column_name2 data_type null)
     table_attrs=[]
     while True:
         if '(' in table_info[0]:
@@ -116,9 +113,10 @@ def createTable(database_name, table_name, table_info):
             break
         else:
             table_attrs.append(table_info.pop(0))
+    # Each elements contains attrbute type constrain
     table_attrs=' '.join(table_attrs).split(',')
 
-    # Get attributes, types and nulls
+    # for each elem in table_attrs, get attribute name, types and constrains(null status and unique status)
     attrs=[]
     _type=[]
     null_status=[]
@@ -150,8 +148,7 @@ def createTable(database_name, table_name, table_info):
             if tmp[3].upper()!='NOT_UNIQUE' and tmp[3].upper()!='UNIQUE': raise Exception('ERROR: Invalid syntax.')
             null_status.append(tmp[2].upper())
             unique_status.append(tmp[3].upper())
-        else:
-            raise Exception('ERROR: Invalid syntax.')
+        else: raise Exception('ERROR: Invalid syntax.')
 
     # print('null', null_status)
     # print('unique', unique_status)
@@ -164,77 +161,90 @@ def createTable(database_name, table_name, table_info):
     # Get primary key
     primary_key=[]
     if table_info:
-        if table_info[0].upper()=='PRIMARY_KEY':
-            table_info.pop(0)   # Pop PRIMARY_KEY
-            if '(' in table_info[0] and ')' in table_info[0]:
-                tmp=table_info.pop(0).replace('(', '').replace(')', '')
-                primary_key.append(tmp)
-            else:
-                while True:
-                    if '(' in table_info[0]:
-                        primary_key.append(table_info.pop(0).replace('(', '').strip().lower())
-                    elif ')' in table_info[0]:
-                        primary_key.append(table_info.pop(0).replace(')', '').strip().lower())
-                        break
-                    else:
-                        primary_key.append(table_info.pop(0).strip().lower())
+        if table_info[0].upper()=='PRIMARY':
+            table_info.pop(0)   # Pop PRIMARY
+
+            # Pop KEY
+            if table_info.pop(0).upper()=='KEY':
+                if '(' in table_info[0] and ')' in table_info[0]:
+                    primary_key.append(table_info.pop(0).strip('()'))
+                else:
+                    while True:
+                        if '(' in table_info[0]:
+                            primary_key.append(table_info.pop(0).strip('( ').lower())
+                        elif ')' in table_info[0]:
+                            primary_key.append(table_info.pop(0).strip(') ').lower())
+                            break
+                        else:
+                            primary_key.append(table_info.pop(0).strip().lower())
+            else: raise Exception('ERROR: Invalid syntax.')
+
 
     # print(primary_key)
     # Get foreign key
     foreign_key=[]
     if table_info:
-        if table_info[0].upper()=='FOREIGN_KEY':
-            table_info.pop(0)   # Pop foreign_key
-            if '(' in table_info[0] and ')' in table_info[0]:
-                tmp=table_info.pop(0).replace('(', '').replace(')', '')
-                foreign_key.append(tmp)
-            else:
-                while True:
-                    if '(' in table_info[0]:
-                        foreign_key.append(table_info.pop(0).replace('(', '').strip().lower())
-                    elif ')' in table_info[0]:
-                        foreign_key.append(table_info.pop(0).replace(')', '').strip().lower())
-                        break
-                    else:
-                        foreign_key.append(table_info.pop(0).strip().lower())
+        if table_info[0].upper()=='FOREIGN':
+            table_info.pop(0)   # Pop foreign
+
+            # Pop 'KEY'
+            if table_info.pop(0).upper()=='KEY':
+                if '(' in table_info[0] and ')' in table_info[0]:
+                    foreign_key.append(table_info.pop(0).strip('()'))
+                else:
+                    while True:
+                        if '(' in table_info[0]:
+                            foreign_key.append(table_info.pop(0).strip('( ').lower())
+                        elif ')' in table_info[0]:
+                            foreign_key.append(table_info.pop(0).strip(') ').lower())
+                            break
+                        else:
+                            foreign_key.append(table_info.pop(0).strip().lower())
+            else: raise Exception('ERROR: Invalid syntax.')
 
     # print(primary_key)
     # print(foreign_key)
-    ref_database=''
-    ref_table=''
+    ref_database=[]
+    ref_table=[]
+    ref_column=[]
     ref_columns=[]
     if table_info:
-        if table_info[0].upper()=='REFERENCES':
+        while table_info[0].upper()=='REFERENCES':
             table_info.pop(0)   # Pop REFERENCES
+
+            # [ref_database, ref_table]
             ref_name=table_info.pop(0).split('.')
-            ref_database=ref_name[0]
-            ref_table=ref_name[1]
+
+
+            ref_database.append(ref_name[0])
+            ref_table.append(ref_name[1])
 
             if '(' in table_info[0] and ')' in table_info[0]:
-                tmp=table_info.pop(0).replace('(', '').replace(')', '')
-                ref_columns.append(tmp)
+                ref_column.append(table_info.pop(0).strip('()'))
             else:
                 while True:
                     if '(' in table_info[0]:
-                        ref_columns.append(table_info.pop(0).replace('(', '').strip().lower())
+                        ref_column.append(table_info.pop(0).strip('( ').lower())
                     elif ')' in table_info[0]:
-                        ref_columns.append(table_info.pop(0).replace(')', '').strip().lower())
+                        ref_column.append(table_info.pop(0).strip(') ').lower())
+                        ref_columns.append(ref_column)
                         break
                     else:
-                        ref_columns.append(table_info.pop(0).strip().lower())
+                        ref_column.append(table_info.pop(0).strip().lower())
     on_delete='NO_ACTION'
     if table_info:
-        if table_info[0].upper()=='ON_DELETE':
-            table_info.pop(0)    # Pop on_delete
-            on_delete=table_info.pop(0)
+        if table_info[0].upper()=='ON':
+            if table_info[1].upper()=='DELETE':
+                table_info.pop(0)    # Pop on
+                table_info.pop(0)    # Pop delete
+                on_delete=table_info.pop(0)
 
     on_update='NO_ACTION'
-    if table_info:
-        if table_info[0].upper()=='ON_UPDATE':
-            table_info.pop(0)
-            on_update=table_info.pop(0)
-
-
+    if table_info[0].upper()=='ON':
+            if table_info[1].upper()=='UPDATE':
+                table_info.pop(0)    # Pop on
+                table_info.pop(0)    # Pop 'UPDATE'
+                on_update=table_info.pop(0)
 
     # print(ref_database)
     # print(ref_table)
@@ -319,14 +329,9 @@ def insertTable(database_name, table_name, table_info):
     
     database_dir='./ZibiDB/database/'+database_name
 
-    # Check database
-    if not os.path.exists(database_dir):
-        raise Exception('ERROR: '+database_name.upper()+' is invalid database.')
-    # print(table_name)
-
-    # Check schema
-    if not os.path.exists(database_dir+'/'+table_name+'.json') or not os.path.exists(database_dir+'/'+table_name+'.csv'):
-        raise Exception('ERROR: '+table_name.upper()+' is invalid schema.')
+    # Check database and schema existence
+    if not os.path.exists(database_dir): raise Exception('ERROR: '+database_name.upper()+' is invalid database.')
+    if not os.path.exists(database_dir+'/'+table_name+'.json') or not os.path.exists(database_dir+'/'+table_name+'.csv'): raise Exception('ERROR: '+table_name.upper()+' is invalid schema.')
 
     # print(database_name)
     # print(table_name)
@@ -352,12 +357,9 @@ def insertTable(database_name, table_name, table_info):
 
     # print(table_info)
     
-    _attrs=table_info[0].replace('(', '').replace(')', '').split(',')
-    vals=table_info[1].replace('(', '').replace(')', '').split(',')
-
-    attrs=[]
-    for _attr in _attrs:
-        attrs.append(_attr.strip())
+    # Process attrs and values
+    _attrs=list(map(str.strip, table_info[0].strip('() ').split(',')))
+    vals=table_info[1].strip('() ').split(',')
 
     values=[]
     for val in vals:
@@ -366,10 +368,9 @@ def insertTable(database_name, table_name, table_info):
         else:
             values.append(val.strip())
 
-    if len(attrs)!=len(values):
-        raise Exception('ERROR: Invalid syntax.')
+    if len(_attrs)!=len(values): raise Exception('ERROR: Invalid syntax.')
 
-    # print(attrs)
+    # print(_attrs)
     # print(values)
 
     # Get and Parse JSON
@@ -381,20 +382,17 @@ def insertTable(database_name, table_name, table_info):
     keys=[]
     _t={}
     for attributes in j['person'][0]['Attributes']:
-
         for attribute in attributes:
             keys.append(attribute)
             _t[attribute]=attributes[attribute][0]
 
-    # Check inserting keys are same with attrs of table
-    if set(keys)!=set(attrs):
-        raise Exception('ERROR: Invalid attributes.')
+    # Check inserting keys are same with _attrs of table
+    if set(keys)!=set(_attrs): raise Exception('ERROR: Invalid attributes.')
 
     # Check the values have corresponding type
     i=0
-    for attr in attrs:
-        _check=checkType(values[i], _t[attr]['type'])
-        if _check==False:
+    for attr in _attrs:
+        if checkType(values[i], _t[attr]['type'])==False:
             raise Exception('ERROR: Invalid types.')
         i=i+1
 
