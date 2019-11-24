@@ -5,3 +5,5 @@ CREATE TABLE NotAP.Person (id int not_null unique, position char not_null, name 
 insert into notap.person (id, position, name, address) values (1, 'manager', 'Yang', 'home')
 
 insert into notap.perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
+
+SELECT CustomerName, City FROM Customers where city=arlington
