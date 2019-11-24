@@ -60,11 +60,50 @@ def parse(commandline):
                 insertTable(database_name, table_name, table_info)
             else:
                 raise Exception('ERROR: Only accept INSERT TABLE.')
+
+        # SELECT
+        elif action[0].upper() == 'SELECT':
+            selectQuery(' '.join(action[1:]))
                 
         else:
             raise Exception('Only accept exit, drop database/table, and create database/table command now ~~~~ : p')
 
     return action
+
+def selectQuery(info):
+    print(info)
+    if 'FROM' in info:
+        info=info.split('FROM')
+    elif 'from' in info:
+        info=info.split('from')
+    elif 'From' in info:
+        info=info.split('From')
+    else: raise Exception('ERROR: Invalid syntax.')
+
+    # Get attrs
+    select_attrs=info.pop(0).split(',')
+    select_attrs=list(map(str.strip, select_attrs))
+    select_attrs=list(map(str.lower, select_attrs))
+    print(select_attrs)
+
+    info=' '.join(info)
+    if ' WHERE ' in info:
+        info=info.split(' WHERE ')
+    elif ' where ' in info:
+        info=info.split(' where ')
+    elif ' Where ' in info:
+        info=info.split(' Where ')
+    else: info=[info]
+    
+    # Get table's names
+    select_tables=info.pop(0).split(',')
+    select_tables=list(map(str.strip, select_tables))
+    select_tables=list(map(str.lower, select_tables))
+    print(select_tables)
+
+    info=' '.join(info)
+    print(info)
+
 
 # CREATE DATABASE test;
 def createDatabase(action):
