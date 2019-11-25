@@ -434,6 +434,7 @@ class Engine:
         # Get group by clause
         groupBy_clause=[]
         count=0
+        group_dict=dict()
         if info:
             if info[0].upper()=='GROUP':
                 info.pop(0) #Pop GROUP
@@ -453,7 +454,7 @@ class Engine:
 
                 groupBy=[]
                 having=[]
-                group_dict=dict()
+                
                 for i in range(len(groupBy_clause)):
                     if groupBy_clause[i].upper()=='HAVING':
                         having=groupBy_clause[i+1:]
@@ -469,6 +470,7 @@ class Engine:
         # Get order by clause
         orderBy_clause=[]
         count=0
+        orderBy_dict=dict()
         if info:
             if info[0].upper()=='ORDER':
                 info.pop(0) #Pop ORDER
@@ -481,12 +483,9 @@ class Engine:
                     count+=1
                 for i in range(count):
                     info.pop(0)
-
-
+                    
                 # Parse order by clause
                 orderBy=[]
-                orderBy_dict=dict()
-
                 # If desc is in clause, but last elem is not it, error
                 # else desc is 1
                 if 'DESC' in ' '.join(orderBy_clause).upper():
@@ -509,8 +508,6 @@ class Engine:
         if info!=[]:
             raise Exception('ERROR: Invalid syntax.')
         print(info)
-
-
 
     # lauch function: receieve a command and send to execution function.
     def start(self):
