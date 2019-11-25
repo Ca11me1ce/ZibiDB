@@ -5,10 +5,12 @@ import json
 import pandas
 from ZibiDB.parser import parse
 
+# All attributes, table names, and database names will be stored in lower case
+
 # database engine
 class Engine:
 
-# action functions
+    # action functions
     # CREATE DATABASE test;
     def createDatabase(self, name):
         database = name.replace(';', '').lower()
@@ -374,10 +376,12 @@ class Engine:
 
     def selectQuery(self, info):
 
-        attr_key_words=['MAX', 'MIN', 'DISTINCT', 'AVG', 'COUNT', 'SUM']
-        where_key_words=['OR', 'AND', 'IN', 'BETWEEN', 'LIKE', 'NOT', 'EXIST']
+        symbols=['=', '<', '<=', '>=', '<>']
 
         key_words=['FROM', 'WHERE', 'ORDER', 'GROUP', 'BY']
+        
+        aggregate_key_words=['MAX', 'MIN', 'DISTINCT', 'AVG', 'COUNT', 'SUM']
+        where_key_words=['OR', 'AND', 'IN', 'BETWEEN', 'LIKE', 'NOT', 'EXIST']
 
         groupBy_key_words=['HAVING']
         orderBy_key_words=['DESC']
@@ -389,7 +393,6 @@ class Engine:
         select_attrs=[]
         count=0
         for i in info:
-            print(i)
             if i.upper() in key_words:
                 break
             select_attrs.append(i.lower().strip(', '))
@@ -483,7 +486,7 @@ class Engine:
                     count+=1
                 for i in range(count):
                     info.pop(0)
-                    
+
                 # Parse order by clause
                 orderBy=[]
                 # If desc is in clause, but last elem is not it, error
