@@ -63,7 +63,7 @@ def parse(commandline):
 
         # SELECT
         elif action[0].upper() == 'SELECT':
-            selectQuery(' '.join(action[1:]))
+            selectQuery(action[1:])
                 
         else:
             raise Exception('Only accept exit, drop database/table, and create database/table command now ~~~~ : p')
@@ -71,37 +71,143 @@ def parse(commandline):
     return action
 
 def selectQuery(info):
+
+    attr_key_words=['MAX', 'MIN', 'DISTINCT', 'AVG', 'COUNT', 'SUM']
+    where_key_words=['OR', 'AND', 'IN', 'BETWEEN', 'LIKE', 'NOT', 'EXIST']
+
+    key_words=['FROM', 'WHERE', 'ORDER', 'GROUP', 'BY']
+
+    groupBy_key_words=['HAVING']
+    orderBy_key_words=['DESC']
+
+
     print(info)
-    if 'FROM' in info:
-        info=info.split('FROM')
-    elif 'from' in info:
-        info=info.split('from')
-    elif 'From' in info:
-        info=info.split('From')
+
+    # Get selected attrs
+    select_attrs=[]
+    count=0
+    for i in info:
+        print(i)
+        if i.upper() in key_words:
+            break
+        select_attrs.append(i.lower().strip(', '))
+        count+=1
+    for i in range(count):
+        info.pop(0)
+
+    print('attrs: ', select_attrs)
+
+    # Get selected tables' names
+    count=0
+    select_tables=[]
+    if info.pop(0).upper()=='FROM':
+        for i in info:
+            if i.upper() in key_words:
+                break
+            select_tables.append(i.lower().strip(', '))
+            count+=1
     else: raise Exception('ERROR: Invalid syntax.')
+    for i in range(count):
+        info.pop(0)
+    print('tables: ', select_tables)
 
-    # Get attrs
-    select_attrs=info.pop(0).split(',')
-    select_attrs=list(map(str.strip, select_attrs))
-    select_attrs=list(map(str.lower, select_attrs))
-    print(select_attrs)
+    # Get where clause
+    # Where or not where both okay
+    where_clause=[]
+    count=0
+    if info:
+        if info[0].upper()=='WHERE':
+            info.pop(0) #Pop where
+            for i in info:
+                if i.upper() in key_words:
+                    break
+                where_clause.append(i.strip(', '))
+                count+=1
+            for i in range(count):
+                info.pop(0)
 
-    info=' '.join(info)
-    if ' WHERE ' in info:
-        info=info.split(' WHERE ')
-    elif ' where ' in info:
-        info=info.split(' where ')
-    elif ' Where ' in info:
-        info=info.split(' Where ')
-    else: info=[info]
-    
-    # Get table's names
-    select_tables=info.pop(0).split(',')
-    select_tables=list(map(str.strip, select_tables))
-    select_tables=list(map(str.lower, select_tables))
-    print(select_tables)
+            # TODO: Parse where clause
+    print('where, ', where_clause)
 
-    info=' '.join(info)
+    # Get group by clause
+    groupBy_clause=[]
+    count=0
+    if info:
+        if info[0].upper()=='GROUP':
+            info.pop(0) #Pop GROUP
+            if info.pop(0).upper()!='BY': raise Exception('ERROR: Invalid syntax.') #Pop BY
+
+            for i in info:
+                if i.upper() in key_words:
+                    break
+                groupBy_clause.append(i.lower().strip(', '))
+                count+=1
+            for i in range(count):
+                info.pop(0)
+
+            # Parse group by clause
+            # If the first elem is having, error
+            if groupBy_clause[0].upper()=='HAVING': raise Exception('ERROR: Invalid syntax.')
+
+            groupBy=[]
+            having=[]
+            group_dict=dict()
+            for i in range(len(groupBy_clause)):
+                if groupBy_clause[i].upper()=='HAVING':
+                    having=groupBy_clause[i+1:]
+                    break
+                groupBy.append(groupBy_clause[i])
+            group_dict={
+                'group_by': groupBy,
+                'having': having
+            }
+                
+
+                
+    print('group by: ', group_dict)
+
+    # Get order by clause
+    orderBy_clause=[]
+    count=0
+    if info:
+        if info[0].upper()=='ORDER':
+            info.pop(0) #Pop ORDER
+            if info.pop(0).upper()!='BY': raise Exception('ERROR: Invalid syntax.') #Pop BY
+
+            for i in info:
+                if i.upper() in key_words:
+                    break
+                orderBy_clause.append(i.lower().strip(', '))
+                count+=1
+            for i in range(count):
+                info.pop(0)
+
+
+            # Parse order by clause
+            orderBy=[]
+            orderBy_dict=dict()
+
+            # If desc is in clause, but last elem is not it, error
+            # else desc is 1
+            if 'DESC' in ' '.join(orderBy_clause).upper():
+                if orderBy_clause[-1].upper()!='DESC':
+                    raise Exception('ERROR: Invalid syntax.')
+                else:
+                    desc=1
+                    orderBy=orderBy_clause[:len(orderBy_clause)-1]
+            else:
+                desc=0
+                orderBy=orderBy_clause
+            orderBy_dict={
+                'order_by': orderBy,
+                'desc': desc,
+            }
+
+
+    print('order by: ', orderBy_dict)
+
+    if info!=[]:
+        raise Exception('ERROR: Invalid syntax.')
     print(info)
 
 
