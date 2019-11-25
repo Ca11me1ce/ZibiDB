@@ -7,5 +7,3 @@ insert into notap.person (id, position, name, address) values (1, 'manager', 'Ya
 insert into notap.perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
 
 SELECT CustomerName, City FROM Customers where city=arlington
-
-SELECT CustomerName, City FROM Customers where city=arlington AND city=nyc Group BY city Having city=nyc order by city desc
