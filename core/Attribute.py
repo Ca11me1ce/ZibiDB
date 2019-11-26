@@ -6,11 +6,12 @@ Created on Fri Nov 22 14:05:07 2019
 """
 
 class Attribute:
-    def __init__(self):
-        self.name = ''
-        self.kind = ''
-        self.constrain = []
-        self.unique = False
+    # dic = {name:'', type: '', constrain:[], unique: true/false}
+    def __init__(self, dic):
+        self.name = dic['name']
+        self.type = dic['type']
+        self.constrain = dic['constrain']
+        self.unique = dic['unique']
         
-    def check():
+    def check(self):
         pass

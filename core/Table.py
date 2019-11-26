@@ -8,18 +8,22 @@ Created on Fri Nov 22 13:45:14 2019
 import pandas as pd
 
 class Table:
-    def __init__(self, dic):
-        self.data = dic
-        self.primary = False
-        self.foreign = []
-        self.name = ''
-        self.rows = pd.DataFrame(self.data)
+    # info = {}
+    def __init__(self, info):
+        self.data = {}
+        self.primary = info['primary']
+        self.foreign = info['foreign']
+        self.name = info['name']
+
+        for attr in info['attrs']:
+            self.data[attr] = []
+        self.row = pd.DataFrame(self.data)
         
-    def serialize():
+    def serialize(self):
         pass
     
-    def deserialize():
+    def deserialize(self):
         pass
     
-    def search():
+    def search(self):
         pass
