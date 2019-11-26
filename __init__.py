@@ -340,7 +340,7 @@ class Engine:
         # Check the values have corresponding type
         i=0
         for attr in _attrs:
-            if checkType(values[i], _t[attr]['type'])==False:
+            if self.checkType(values[i], _t[attr]['type'])==False:
                 raise Exception('ERROR: Invalid types.')
             i=i+1
 
