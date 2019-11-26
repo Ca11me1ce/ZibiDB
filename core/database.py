@@ -6,17 +6,17 @@ Created on Fri Nov 22 14:41:36 2019
 """
 import os
 import shutil
+from Table import Table
 
 class Database:
     def __init__(self, name):
         self.tables = []
         self.name = name
+        self.create_dir(self.name)
         
-    # def save():
-    #     pass
-    #
-    # def load():
-    #     pass
+    def add_table(self, info):
+        table = Table(info)
+        self.tables.append(table)
 
     def create_dir(self, name):
         database = name.replace(';', '').lower()
