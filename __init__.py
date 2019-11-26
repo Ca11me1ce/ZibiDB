@@ -391,48 +391,35 @@ class Engine:
 
         # Get selected attrs
         select_attrs=[]
-        count=0
-        for i in info:
-            if i.upper() in key_words:
-                break
-            select_attrs.append(i.lower().strip(', '))
-            count+=1
-        for i in range(count):
-            info.pop(0)
+        
+        while info[0].upper() not in key_words:
+            select_attrs.append(info.pop(0).lower().strip(', '))
 
         print('attrs: ', select_attrs)
 
         # Get selected tables' names
-        count=0
         select_tables=[]
         if info.pop(0).upper()=='FROM':
-            for i in info:
-                if i.upper() in key_words:
-                    break
-                select_tables.append(i.lower().strip(', '))
-                count+=1
+            
+            while info[0].upper() not in key_words:
+                select_tables.append(info.pop(0).lower().strip(', '))
+
         else: raise Exception('ERROR: Invalid syntax.')
-        for i in range(count):
-            info.pop(0)
         print('tables: ', select_tables)
 
         # Get where clause
         # Where or not where both okay
         where_clause=[]
-        count=0
         conditions=[]
-        # condition=dict()
         op=[]
         if info:
             if info[0].upper()=='WHERE':
                 info.pop(0) #Pop where
-                for i in info:
-                    if i.upper() in key_words:
+
+                while info[0].upper() not in key_words:
+                    where_clause.append(info.pop(0).strip(', '))
+                    if not info:
                         break
-                    where_clause.append(i.strip(', '))
-                    count+=1
-                for i in range(count):
-                    info.pop(0)
 
                 # TODO: Parse where clause
                 temp=[]
@@ -496,7 +483,6 @@ class Engine:
                                 temp=[]
                                 continue
 
-
                             elif ' IN ' in temp.upper():
                                 # AND id in (1, 2, 3) OR
                                 tmp=temp.split(' ')
@@ -504,8 +490,6 @@ class Engine:
                                 if tmp.pop(0).upper()!='IN': raise Exception('ERROR: Invalid Where Clause.')  # Pop IN
                                 tmp=','.join(tmp).strip('() ').split(',')
                                 for val in tmp:
-                                    # condition['value']=val.strip()
-                                    # condition['symbol']='='
                                     conditions.append({
                                         'attr': tmp_attr,
                                         'value': val.strip(', '),
@@ -529,20 +513,16 @@ class Engine:
 
         # Get group by clause
         groupBy_clause=[]
-        count=0
         group_dict=dict()
         if info:
             if info[0].upper()=='GROUP':
                 info.pop(0) #Pop GROUP
                 if info.pop(0).upper()!='BY': raise Exception('ERROR: Invalid syntax.') #Pop BY
 
-                for i in info:
-                    if i.upper() in key_words:
+                while info[0].upper() not in key_words:
+                    groupBy_clause.append(info.pop(0).strip(', '))
+                    if not info:
                         break
-                    groupBy_clause.append(i.lower().strip(', '))
-                    count+=1
-                for i in range(count):
-                    info.pop(0)
 
                 # Parse group by clause
                 # If the first elem is having, error
@@ -565,20 +545,16 @@ class Engine:
 
         # Get order by clause
         orderBy_clause=[]
-        count=0
         orderBy_dict=dict()
         if info:
             if info[0].upper()=='ORDER':
                 info.pop(0) #Pop ORDER
                 if info.pop(0).upper()!='BY': raise Exception('ERROR: Invalid syntax.') #Pop BY
 
-                for i in info:
-                    if i.upper() in key_words:
+                while info[0].upper() not in key_words:
+                    orderBy_clause.append(info.pop(0).lower().strip(', '))
+                    if not info:
                         break
-                    orderBy_clause.append(i.lower().strip(', '))
-                    count+=1
-                for i in range(count):
-                    info.pop(0)
 
                 # Parse order by clause
                 orderBy=[]
@@ -597,7 +573,6 @@ class Engine:
                     'order_by': orderBy,
                     'desc': desc,
                 }
-
 
         print('order by: ', orderBy_dict)
 
