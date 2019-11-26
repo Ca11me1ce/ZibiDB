@@ -8,7 +8,7 @@ def create(action):
         return{
             'mainact' : 'create',
             'type' : 'database',
-            'name' : action[2]
+            'name' : action[2].lower()
         }
 
     # TODO : remain to be change, since we no need to add database name before table name
@@ -17,8 +17,8 @@ def create(action):
         return{
             'mainact' : 'create',
             'type' : 'table',
-            'database_name' : name[0],
-            'table_name' : name[1],
+            'database_name' : name[0].lower(),
+            'table_name' : name[1].lower(),
             'info' : action[3:]
         }
 
@@ -30,7 +30,7 @@ def drop(action):
         return{
             'mainact' : 'drop',
             'type' : 'database',
-            'name' : action[2]
+            'name' : action[2].lower()
         }
 
     # TODO : remain to be change, since we no need to add database name before table name
@@ -39,8 +39,8 @@ def drop(action):
         return{
             'mainact' : 'drop',
             'type' : 'table',
-            'database_name' : name[0],
-            'table_name' : name[1]
+            'database_name' : name[0].lower(),
+            'table_name' : name[1].lower()
         }
 # TODO : remain to be change, since we no need to add database name before table name
 def insert(action):
@@ -48,8 +48,8 @@ def insert(action):
         name=action[2].split('.')
         return{
             'mainact' : 'insert',
-            'database_name' : name[0],
-            'table_name' : name[1],
+            'database_name' : name[0].lower(),
+            'table_name' : name[1].lower(),
             'info' : action[3:]
         }
 
