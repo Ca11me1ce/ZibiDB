@@ -3,7 +3,9 @@ import shutil
 import csv
 import json
 import pandas
+import sys
 from ZibiDB.parser import parse
+from ZibiDB.core.database import Database
 
 # All attributes, table names, and database names will be stored in lower case
 
@@ -13,31 +15,39 @@ class Engine:
     # action functions
     # CREATE DATABASE test;
     def createDatabase(self, name):
-        database = name.replace(';', '').lower()
-        _database='./ZibiDB/database/'
+        db = Database(name)
+        return db
 
-        # If the database directory is exist, pass
-        if not os.path.exists(_database):
-            os.makedirs(_database)
+    # save database test;
+    def saveDatabase(self, db):
+        db.save()
 
-        # If the database is exist, ERROR
-        if os.path.exists(_database+database):
-            raise Exception('ERROR: The database is exist already.')
-            
-        # If the database is not exist, create and PASS
-        elif not os.path.exists(_database+database):
-            os.makedirs(_database+database)
-            print('PASS: The database is created.')
-            return
+    # DROP DATABASE test;
+    def dropDatabase(self, db):
+        db.drop_database()
 
-        else:
-            raise Exception('ERROR: Invalid command.')
-    '''
+    # use database test;
+    def useDatabase(self, name):
+        db = Database(name)
+        db.load()
+        return db
+
+    # show
+    def show(self):
+        t = sys.argv[0]      
+        t = t[:-11] + 'database/'
+        print(t)
+        dirs = os.listdir(t)
+        for dir in dirs:
+            if '.' not in dir:
+                print(dir)
+
+    """
     CREATE TABLE database_name.table_name (column_name1 data_type not_null, column_name2 data_type null) primary_key (column_name1);
     CREATE TABLE database_name.table_name (column_name1 data_type not_null, column_name2 data_type null) primary_key (column_name1, column_name2) foreign_key (column_name_f, column_namef1) references database_name.table_name (column_name);
     CREATE TABLE database_name.table_name (column_name1 data_type not_null unique, column_name2 data_type null) primary_key (column_name1, column_name2) foreign_key (column_name_f, column_namef1) references database_name.table_name (column_name);
 
-    '''
+    """
     def createTable(self, database_name, table_name, table_info):
         # print(database_name)
         database_dir='./ZibiDB/database/'+database_name
@@ -231,46 +241,10 @@ class Engine:
 
         print('PASS: The schema is created.')
 
-    # DROP DATABASE test;
-    def dropDatabase(self, name):
-        database = name.replace(';', '').lower()
-        _database='./ZibiDB/database/'
+    # DROP TABLE a;
+    def dropTable(self, db, table_name):
+        db.drop_table(able_name)
 
-        # If the database directory is exist, pass
-        if not os.path.exists(_database):
-            raise Exception('ERROR: No any databases')
-
-        # If the database is exist, drop and PASS
-        if os.path.exists(_database+database):
-            shutil.rmtree(_database+database)
-            print('PASS: The database is dropped.')
-            return
-            
-        # If the database is not exist, ERROR
-        elif not os.path.exists(_database+database):
-            raise Exception('ERROR: The database is not exist.')
-
-        else:
-            raise Exception('ERROR: Invalid command.')
-
-    # DROP TABLE database_name.table_name;
-    def dropTable(self, database_name, table_name):
-        # print(database_name)
-        # print(table_name)
-
-        database_dir='./ZibiDB/database/'+database_name
-
-        # Check database
-        if not os.path.exists(database_dir):
-            raise Exception('ERROR: '+database_name.upper()+' is invalid database.')
-
-        if not os.path.exists(database_dir+'/'+table_name+'.json') and not os.path.exists(database_dir+'/'+table_name+'.csv'):
-            raise Exception('ERROR: '+table_name.upper()+' is not exist schema.')
-
-        os.remove(database_dir+'/'+table_name+'.json')
-        os.remove(database_dir+'/'+table_name+'.csv')
-
-        print('PASS: The schema is dropped.')
 
     # insert into notap.perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
     def insertTable(self, database_name, table_name, table_info):
@@ -582,16 +556,18 @@ class Engine:
 
     # lauch function: receieve a command and send to execution function.
     def start(self):
+        db = None
         # continue running until recieve the exit command.
-       while True:
+        while True:
             commandline = input('ZibiDB>')
             if commandline=='':
                 continue
             commandline=commandline.replace(';', '')
             try:
-                result = self.execute(commandline)
+                result, db = self.execute(commandline, db)
                 if result == 'exit':
                     print ('BYE')
+                    sys.exit(0)
                     return
 
             # print information of exception
@@ -599,32 +575,60 @@ class Engine:
                 print (err)
 
     # execution function: send commandline to parser and get an action as return and execute the mached action function.
-    def execute(self, commandline):
+    def execute(self, commandline, database):
+
+        db = database
 
         # send commandline to parser to get an action
         action = parse(commandline)
 
         if action['mainact'] == 'exit':
-            return 'exit'
+            return 'exit', db
 
         if action['mainact'] == 'create':
             if action['type'] == 'database':
-                self.createDatabase(action['name'])
+                db = self.createDatabase(action['name'])
             elif action['type'] == 'table':
                 self.createTable(action['database_name'], action['table_name'], action['info'])
+            return 'continue', db
 
         if action['mainact'] == 'drop':
             if action['type'] == 'database':
-                print (action['name'])
-                self.dropDatabase(action['name'])
+                if db:
+                    if action['name'] == db.name:
+                        self.dropDatabase(db)
+                    else:
+                        raise Exception('ERROR: Database %s doesnt exist.' % db.name)
+                else:
+                    raise Exception('ERROR: Database %s doesnt exist.' % db.name)
+                db = None
             elif action['type'] == 'table':
-                self.dropTable(action['database_name'], action['table_name'])
+                self.dropTable(db, action['table_name'])
+            return 'continue', db
 
         if action['mainact'] == 'insert':
             self.insertTable(action['database_name'], action['table_name'], action['info'])
+            return 'continue', db
 
         if action['mainact'] == 'select':
             self.selectQuery(action['content'])
+            return 'continue', db
 
+        if action['mainact'] == 'save':
+            if db:
+                if action['name'] == db.name:
+                    self.saveDatabase(db)
+                else:
+                    raise Exception('ERROR: Database %s doesnt exist.' % db.name)
+            else:
+                raise Exception('ERROR: Database %s doesnt exist.' % db.name)
+            return 'continue', db
 
+        if action['mainact'] == 'use':
+            db = self.useDatabase(action['name'])
+            return 'continue', db
+
+        if action['mainact'] == 'show':
+            self.show()
+            return 'continue', db
 

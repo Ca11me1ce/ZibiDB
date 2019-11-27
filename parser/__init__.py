@@ -62,14 +62,32 @@ def select(action):
         'content' : action[1:]
     }
 
+def save(action):
+    return{
+        'mainact' : 'save',
+        'name' : action[-1]
+    }
+
+def use(action):
+    return{
+        'mainact' : 'use',
+        'name' : action[-1]
+    }
+
+def show(action):
+    return{
+        'mainact' : 'show',
+    }
+
 main_action = {
     'EXIT' : exit,
     'CREATE' : create,
     'DROP' : drop,
     'INSERT' : insert,
     'SELECT' : select,
-    #'SHOW' : show,
-    #'USE' : use
+    'SAVE' : save,
+    'SHOW' : show,
+    'USE' : use,
 }
 
 def parse(commandline):
