@@ -5,10 +5,12 @@ import json
 import pandas
 from ZibiDB.parser import parse
 
+# All attributes, table names, and database names will be stored in lower case
+
 # database engine
 class Engine:
 
-# action functions
+    # action functions
     # CREATE DATABASE test;
     def createDatabase(self, name):
         database = name.replace(';', '').lower()
@@ -338,7 +340,7 @@ class Engine:
         # Check the values have corresponding type
         i=0
         for attr in _attrs:
-            if checkType(values[i], _t[attr]['type'])==False:
+            if self.checkType(values[i], _t[attr]['type'])==False:
                 raise Exception('ERROR: Invalid types.')
             i=i+1
 
@@ -349,7 +351,7 @@ class Engine:
             f.close()
         print('PASS: The data is inserted.')
 
-    def checkType(value, _type):
+    def checkType(self, value, _type):
 
         if _type=='CHAR':
             value=str(value)
@@ -374,10 +376,12 @@ class Engine:
 
     def selectQuery(self, info):
 
-        attr_key_words=['MAX', 'MIN', 'DISTINCT', 'AVG', 'COUNT', 'SUM']
-        where_key_words=['OR', 'AND', 'IN', 'BETWEEN', 'LIKE', 'NOT', 'EXIST']
+        symbols=['=', '<', '>', '<=', '>=', '<>', 'LIKE']
 
         key_words=['FROM', 'WHERE', 'ORDER', 'GROUP', 'BY']
+        
+        aggregate_key_words=['MAX', 'MIN', 'DISTINCT', 'AVG', 'COUNT', 'SUM']
+        where_key_words=['OR', 'AND', 'IN', 'BETWEEN', 'NOT', 'EXIST']
 
         groupBy_key_words=['HAVING']
         orderBy_key_words=['DESC']
@@ -387,65 +391,138 @@ class Engine:
 
         # Get selected attrs
         select_attrs=[]
-        count=0
-        for i in info:
-            print(i)
-            if i.upper() in key_words:
-                break
-            select_attrs.append(i.lower().strip(', '))
-            count+=1
-        for i in range(count):
-            info.pop(0)
+        
+        while info[0].upper() not in key_words:
+            select_attrs.append(info.pop(0).lower().strip(', '))
 
         print('attrs: ', select_attrs)
 
         # Get selected tables' names
-        count=0
         select_tables=[]
         if info.pop(0).upper()=='FROM':
-            for i in info:
-                if i.upper() in key_words:
-                    break
-                select_tables.append(i.lower().strip(', '))
-                count+=1
+            
+            while info[0].upper() not in key_words:
+                select_tables.append(info.pop(0).lower().strip(', '))
+
         else: raise Exception('ERROR: Invalid syntax.')
-        for i in range(count):
-            info.pop(0)
         print('tables: ', select_tables)
 
         # Get where clause
         # Where or not where both okay
         where_clause=[]
-        count=0
+        conditions=[]
+        op=[]
         if info:
             if info[0].upper()=='WHERE':
                 info.pop(0) #Pop where
-                for i in info:
-                    if i.upper() in key_words:
+
+                while info[0].upper() not in key_words:
+                    where_clause.append(info.pop(0).strip(', '))
+                    if not info:
                         break
-                    where_clause.append(i.strip(', '))
-                    count+=1
-                for i in range(count):
-                    info.pop(0)
 
                 # TODO: Parse where clause
-        print('where, ', where_clause)
+                temp=[]
+                for i in range(len(where_clause)):
+                    condition=dict()
+                    if (where_clause[i].upper() in ['OR', 'AND'] and where_clause[i-2].upper()!='BETWEEN') or i==len(where_clause)-1:
+                        if i==len(where_clause)-1: 
+                            temp.append(where_clause[i])
+                        else:
+                            op.append(where_clause[i].upper())
+
+                        if temp:
+                            temp=' '.join(temp)
+                            if '<=' in temp:
+                                tmp=temp.split('<=')
+                                condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '<='}
+                            elif '>=' in temp:
+                                tmp=temp.split('>=')
+                                condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '>='}
+                            elif '<>' in temp:
+                                tmp=temp.split('<>')
+                                condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '<>'}
+                            elif '=' in temp:
+                                tmp=temp.split('=')
+                                condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '='}
+                            elif '<' in temp:
+                                tmp=temp.split('<')
+                                condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '<'}
+                            elif '>' in temp:
+                                tmp=temp.split('>')
+                                condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '>'}
+                            elif ' LIKE ' in temp.upper():
+                                tmp=temp.split(' ')
+                                condition={'attr': tmp[0].lower(), 'value': tmp[2].strip("'"), 'symbol': 'LIKE'}
+                            elif 'BETWEEN' in temp.upper():
+                                tmp=temp.split(' ')
+                                tmp_attr=tmp.pop(0).lower() #Pop attr
+                                if tmp.pop(0).upper()!='BETWEEN': raise Exception('ERROR: Invalid Where Clause.')   #Pop Between
+
+                                try: 
+                                    if float(tmp[0])>float(tmp[2]): 
+                                        raise Exception('ERROR: Invalid Where Clause.')
+                                except: raise Exception('ERROR: Invalid Where Clause.')
+
+                                # Value 1
+                                conditions.append({
+                                    'attr': tmp_attr,
+                                    'value': tmp.pop(0),
+                                    'symbol': '>='
+                                })
+
+                                if tmp.pop(0).upper()!='AND': raise Exception('ERROR: Invalid Where Clause.')   # Pop AND
+
+                                # Value 2
+                                conditions.append({
+                                    'attr': tmp_attr,
+                                    'value': tmp.pop(0),
+                                    'symbol': '<='
+                                })
+                                op.append('AND')
+                                temp=[]
+                                continue
+
+                            elif ' IN ' in temp.upper():
+                                # AND id in (1, 2, 3) OR
+                                tmp=temp.split(' ')
+                                tmp_attr=tmp.pop(0).lower()    # Pop attr
+                                if tmp.pop(0).upper()!='IN': raise Exception('ERROR: Invalid Where Clause.')  # Pop IN
+                                tmp=','.join(tmp).strip('() ').split(',')
+                                for val in tmp:
+                                    conditions.append({
+                                        'attr': tmp_attr,
+                                        'value': val.strip(', '),
+                                        'symbol': '='
+                                    })
+                                for _ in range(len(tmp)-1):
+                                    op.append('OR')
+                                temp=[]
+                                continue
+
+                            else: raise Exception('ERROR: Invalid Where Clause.')
+                            conditions.append(condition)
+                        else: raise Exception('ERROR: Invalid Where Clause.')
+                        temp=[]
+                    else:
+                        temp.append(where_clause[i])
+                                                
+        # print('where, ', where_clause)
+        print('op: ', op, len(op))
+        print('conditions: ', conditions, len(conditions))
 
         # Get group by clause
         groupBy_clause=[]
-        count=0
+        group_dict=dict()
         if info:
             if info[0].upper()=='GROUP':
                 info.pop(0) #Pop GROUP
                 if info.pop(0).upper()!='BY': raise Exception('ERROR: Invalid syntax.') #Pop BY
 
-                for i in info:
-                    if i.upper() in key_words:
+                while info[0].upper() not in key_words:
+                    groupBy_clause.append(info.pop(0).strip(', '))
+                    if not info:
                         break
-                    groupBy_clause.append(i.lower().strip(', '))
-                    count+=1
-                for i in range(count):
-                    info.pop(0)
 
                 # Parse group by clause
                 # If the first elem is having, error
@@ -453,7 +530,7 @@ class Engine:
 
                 groupBy=[]
                 having=[]
-                group_dict=dict()
+                
                 for i in range(len(groupBy_clause)):
                     if groupBy_clause[i].upper()=='HAVING':
                         having=groupBy_clause[i+1:]
@@ -468,25 +545,19 @@ class Engine:
 
         # Get order by clause
         orderBy_clause=[]
-        count=0
+        orderBy_dict=dict()
         if info:
             if info[0].upper()=='ORDER':
                 info.pop(0) #Pop ORDER
                 if info.pop(0).upper()!='BY': raise Exception('ERROR: Invalid syntax.') #Pop BY
 
-                for i in info:
-                    if i.upper() in key_words:
+                while info[0].upper() not in key_words:
+                    orderBy_clause.append(info.pop(0).lower().strip(', '))
+                    if not info:
                         break
-                    orderBy_clause.append(i.lower().strip(', '))
-                    count+=1
-                for i in range(count):
-                    info.pop(0)
-
 
                 # Parse order by clause
                 orderBy=[]
-                orderBy_dict=dict()
-
                 # If desc is in clause, but last elem is not it, error
                 # else desc is 1
                 if 'DESC' in ' '.join(orderBy_clause).upper():
@@ -503,14 +574,11 @@ class Engine:
                     'desc': desc,
                 }
 
-
         print('order by: ', orderBy_dict)
 
         if info!=[]:
             raise Exception('ERROR: Invalid syntax.')
         print(info)
-
-
 
     # lauch function: receieve a command and send to execution function.
     def start(self):
