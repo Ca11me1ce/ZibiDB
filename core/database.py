@@ -1,26 +1,19 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Nov 22 14:41:36 2019
-
-@author: WXS
-"""
 import os
 import shutil
-from Table import Table
+from ZibiDB.core.table import Table
+import pickle
 
-class Database:
+class Database():
     def __init__(self, name):
-        self.tables = []
+        self.tables = {}
         self.name = name
-        self.create_dir(self.name)
-        
-    def add_table(self, info):
-        table = Table(info)
-        self.tables.append(table)
-
-    def create_dir(self, name):
-        database = name.replace(';', '').lower()
-        _database = './ZibiDB/database/'
+        #self.create_dir(self.name)
+    
+    # Save the whole database as a binary file
+    def save(self):
+        database = self.name.replace(';', '').lower()
+        _database = '../database/'
 
         # If the database directory is exist, pass
         if not os.path.exists(_database):
@@ -28,34 +21,65 @@ class Database:
 
         # If the database is exist, ERROR
         if os.path.exists(_database + database):
-            raise Exception('ERROR: The database is exist already.')
+            raise Exception('ERROR: Database %s exists already.' % database)
 
         # If the database is not exist, create and PASS
         elif not os.path.exists(_database + database):
-            os.makedirs(_database + database)
-            print('PASS: The database is created.')
+            file = open(_database + database, "wb+")
+            pickle.dump(self, file)
+            file.close()
+            print('PASS: Database %s is created.' % database)
             return
 
         else:
             raise Exception('ERROR: Invalid command.')
 
-    def drop_dir(self, name):
-        database = name.replace(';', '').lower()
-        _database = './ZibiDB/database/'
+    # Load an exsiting database
+    def load(self):
+        database = self.name.replace(';', '').lower()
+        _database = '../database/'
+        if not os.path.exists(_database + database):
+            raise Exception('ERROR: Database %s doesnt exist.' % database)
 
-        # If the database directory is exist, pass
+        elif os.path.exists(_database + database):
+            file = open(_database + database, "rb")
+            self = pickle.load(file)
+            file.close()
+            print('You are now using Database: %s !' % database)
+            return
+
+        else:
+            raise Exception('ERROR: Invalid command.')
+
+    def drop_database(self):
+        database = self.name.replace(';', '').lower()
+        _database = '../database/'
+
+        # If there is no database, pass
         if not os.path.exists(_database):
             raise Exception('ERROR: No any databases')
 
-        # If the database is exist, drop and PASS
+        # If the database exists, drop and PASS
         if os.path.exists(_database + database):
-            shutil.rmtree(_database + database)
-            print('PASS: The database is dropped.')
+            os.remove(_database + database)
+            print('PASS: Database %s is dropped.' % database)
             return
 
-        # If the database is not exist, ERROR
+        # If the database doesnt exist, ERROR
         elif not os.path.exists(_database + database):
-            raise Exception('ERROR: The database is not exist.')
+            raise Exception('ERROR: Database %s doesnt exist.' % database)
 
         else:
             raise Exception('ERROR: Invalid command.')
+
+    # Add new table to dabase
+    def add_table(self, info):
+        self.tables[table_name] = Table(info)
+
+    # Drop exit table from database
+    def drop_table(self, name):
+        if name not in self.tables.keys():
+            raise Exception("Table %s doesn't exist" % name)
+        del self.tables[name]
+
+    

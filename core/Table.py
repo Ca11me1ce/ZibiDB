@@ -1,14 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Nov 22 13:45:14 2019
-
-@author: WXS
-"""
-
-import pandas as pd
+#import pandas as pd
 import json
 import os
-from Attribute import Attribute
+from ZibiDB.core.attribute import Attribute
 
 class Table:
     # info = {}
@@ -43,6 +36,7 @@ class Table:
 
         print('PASS: The schema is created.')
     
+    """
     def delete(self):
         database_dir='./ZibiDB/database/'+self.database
 
@@ -57,6 +51,7 @@ class Table:
         os.remove(database_dir+'/'+self.name+'.csv')
 
         print('PASS: The schema is dropped.')
+    """
         
     def serialize(self):
         pass
