@@ -11,14 +11,11 @@ def create(action):
             'name' : action[2].lower()
         }
 
-    # TODO : remain to be change, since we no need to add database name before table name
     elif action[1].upper() == 'TABLE':
-        name=action[2].split('.')
         return{
             'mainact' : 'create',
             'type' : 'table',
-            'database_name' : name[0].lower(),
-            'table_name' : name[1].lower(),
+            'table_name' : action[2].lower(),
             'info' : action[3:]
         }
 
@@ -33,23 +30,17 @@ def drop(action):
             'name' : action[2].lower()
         }
 
-    # TODO : remain to be change, since we no need to add database name before table name
     elif action[1].upper() == 'TABLE':
-        name=action[2].split('.')
         return{
             'mainact' : 'drop',
             'type' : 'table',
-            'database_name' : name[0].lower(),
-            'table_name' : name[1].lower()
+            'table_name' : action[2].lower()
         }
-# TODO : remain to be change, since we no need to add database name before table name
 def insert(action):
     if action[1].upper() == 'INTO':
-        name=action[2].split('.')
         return{
             'mainact' : 'insert',
-            'database_name' : name[0].lower(),
-            'table_name' : name[1].lower(),
+            'table_name' : action[2].lower(),
             'info' : action[3:]
         }
 
