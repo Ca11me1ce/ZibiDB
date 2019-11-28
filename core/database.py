@@ -82,7 +82,11 @@ class Database():
 
     # Add new table to dabase
     def add_table(self, info):
-        self.tables[info[table_name]] = Table(info)
+        print('add table')
+        print('table name', info['name'])
+        self.tables[info['name']] = Table(info)
+        print('bk3')
+        print()
 
     # Drop exit table from database
     def drop_table(self, name):
