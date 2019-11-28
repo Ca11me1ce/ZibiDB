@@ -4,7 +4,9 @@ class Attribute:
     def __init__(self, dic):
         self.name = dic['name']
         self.type = dic['type']
-        self.constrain = dic['constrain']
+        self.constrain = []
+        #self.constrain = dic['constrain']
+        self.notnull = dic['notnull']
         self.unique = dic['unique']
         
     def check(self, value):

@@ -198,11 +198,10 @@ class Engine:
             if _type[i] not in std_type:
                 raise Exception('ERROR: Invalid type.')
             attrs_ls.append({
-                attrs[i]:[{
+                    'name':attrs[i],
                     'type': _type[i],
-                    'not_null': 1 if null_status[i].upper()=='NOT_NULL' else 0,
+                    'notnull': 1 if null_status[i].upper()=='NOT_NULL' else 0,
                     'unique': 1 if unique_status[i].upper()=='UNIQUE' else 0,
-                }]
             })
         
         foreignk = {}

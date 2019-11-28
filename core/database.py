@@ -82,24 +82,13 @@ class Database():
 
     # Add new table to dabase
     def add_table(self, info):
-<<<<<<< HEAD
-        print('add table')
-        print('table name', info['name'])
         self.tables[info['name']] = Table(info)
-        print('bk3')
-        print()
-=======
-<<<<<<< HEAD
-        self.tables[info['name']] = Table(info)
-=======
-        self.tables[info[table_name]] = Table(info)
->>>>>>> c6e1711e464016059a0f9ced21f220ed92459fac
->>>>>>> e4efc6bbce98aa4b75880b8542e1bdcd7ac15851
 
     # Drop exit table from database
     def drop_table(self, name):
         if name not in self.tables.keys():
             raise Exception("Table %s doesn't exist" % name)
         del self.tables[name]
+        print ('Table %s is dropped' % name)
 
     
