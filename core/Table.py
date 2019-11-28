@@ -8,11 +8,10 @@ class Table:
     # need a load() outside
     def __init__(self, info):
         self.data = {}
+        self.name = info['name']
+        self.attrs = info['attrs']
         self.primary = info['primary']
         self.foreign = info['foreign']
-        self.name = info['name']
-        self.database = info['database']
-        self.attrs = info['attrs']
 
         for attr in info['attrs']:
             Attr = Attribute(attr)
