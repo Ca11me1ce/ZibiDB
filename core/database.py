@@ -82,7 +82,11 @@ class Database():
 
     # Add new table to dabase
     def add_table(self, info):
+<<<<<<< HEAD
+        self.tables[info['name']] = Table(info)
+=======
         self.tables[info[table_name]] = Table(info)
+>>>>>>> c6e1711e464016059a0f9ced21f220ed92459fac
 
     # Drop exit table from database
     def drop_table(self, name):
