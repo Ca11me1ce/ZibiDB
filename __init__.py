@@ -64,7 +64,6 @@ class Engine:
                 table_attrs.append(table_info.pop(0))
         # Each elements contains attrbute type constrain
         table_attrs=' '.join(table_attrs).split(',')
-        print(table_attrs)
 
         # for each elem in table_attrs, get attribute name, types and constrains(null status and unique status)
         attrs=[]
@@ -75,8 +74,6 @@ class Engine:
             tmp=i.strip().split(' ')
             attrs.append(tmp[0].lower())
             _type.append(tmp[1].upper())
-
-            # TODO: Parse null, unique, and constrains
 
             # There is null or/and unique status
             if len(tmp)==3: 
@@ -99,10 +96,11 @@ class Engine:
                 null_status.append(tmp[2].upper())
                 unique_status.append(tmp[3].upper())
             else: raise Exception('ERROR: Invalid syntax.')
-        print(attrs)
-        print(_type)
-        print(null_status)
-        print(unique_status)
+        # print(attrs)
+        # print(_type)
+        # print(null_status)
+        # print(unique_status)
+
         # Get primary key
         primary_key=[]
         if table_info:
@@ -123,7 +121,7 @@ class Engine:
                             else:
                                 primary_key.append(table_info.pop(0).strip().lower())
                 else: raise Exception('ERROR: Invalid syntax.')
-        print(primary_key)
+        # print(primary_key)
         foreign_key=[]
         if table_info:
             if table_info[0].upper()=='FOREIGN':
@@ -143,7 +141,7 @@ class Engine:
                             else:
                                 foreign_key.append(table_info.pop(0).strip().lower())
                 else: raise Exception('ERROR: Invalid syntax.')
-        print(foreign_key)
+
         ref_table=[]
         ref_column=[]
         ref_columns=[]
@@ -169,19 +167,19 @@ class Engine:
                             break
                         else:
                             ref_column.append(table_info.pop(0).strip().lower())
-
+                if not table_info: break
         # TODO: Each reference should have a on_delete and on_update
+        # print(table_info)
         on_delete='NO_ACTION'
         if table_info:
             if table_info[0].upper()=='ON':
+
                 if table_info[1].upper()=='DELETE':
                     table_info.pop(0)    # Pop on
                     table_info.pop(0)    # Pop delete
                     on_delete=table_info.pop(0)
 
-        
-        
-        print(table_info)
+        # print(table_info)
         on_update='NO_ACTION'
         if table_info:
             if table_info[0].upper()=='ON':
@@ -190,8 +188,8 @@ class Engine:
                         table_info.pop(0)    # Pop 'UPDATE'
                         on_update=table_info.pop(0)
 
-        
         ref_info=[{'schema': ref_table, 'columns': ref_columns, 'on_delete': on_delete.upper(), 'on_update': on_update.upper()}]
+        # print(ref_info)
 
         attrs_ls=[]
         for i in range(len(attrs)):
@@ -203,9 +201,10 @@ class Engine:
                     'notnull': 1 if null_status[i].upper()=='NOT_NULL' else 0,
                     'unique': 1 if unique_status[i].upper()=='UNIQUE' else 0,
             })
+        # print(attrs_ls)
         
         foreignk = {}
-        r = 0
+
         for attri in foreign_key:
             foreignk[attri] = ref_info[0]
             i += 1
@@ -216,7 +215,7 @@ class Engine:
             'primary': primary_key,
             'foreign': foreignk,
         }
-        print('bk2')
+
         db.add_table(info)
 
         print('PASS: Table %s is created.' %table_name)
@@ -577,7 +576,7 @@ class Engine:
                 db = self.createDatabase(action['name'])
             elif action['type'] == 'table':
                 if db:
-                    if action['table_name'] in db.tables.keys(): raise Exception('ERROR: Table is exsted.')
+                    if action['table_name'] in db.tables.keys(): raise Exception('ERROR: Table %s is exsited.' %action['table_name'])
                     db = self.createTable(db, action['table_name'], action['info'])
                 else:
                     raise Exception('ERROR: Please choose a database to use first.')

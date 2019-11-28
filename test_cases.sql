@@ -7,3 +7,5 @@ insert into notap.person (id, position, name, address) values (1, 'manager', 'Ya
 insert into notap.perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
 
 SELECT CustomerName, City FROM Customers where city=arlington
+
+CREATE TABLE Person (id int not_null unique) primary key (id) foreign key (position) references work (position_id) on delete cascade

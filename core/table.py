@@ -16,7 +16,7 @@ class Table:
         for attr in info['attrs']:
             self.attrs[attr['name']] = Attribute(attr)
 
-    def insert(self)：
+    def insert(self):
         pass
 
     def display(self):
