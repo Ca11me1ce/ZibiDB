@@ -13,7 +13,8 @@ class Database():
     # Save the whole database as a binary file
     def save(self):
         database = self.name.replace(';', '').lower()
-        _database = '../database/'
+        _database = sys.argv[0]      
+        _database = _database[:-11] + 'database/'
 
         # If the database directory is exist, pass
         if not os.path.exists(_database):

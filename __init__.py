@@ -16,6 +16,7 @@ class Engine:
     # CREATE DATABASE test;
     def createDatabase(self, name):
         db = Database(name)
+        print ('PASS: Database %s is created. Do remember to save it.' %name)
         return db
 
     # save database test;
@@ -36,7 +37,6 @@ class Engine:
     def show(self):
         t = sys.argv[0]      
         t = t[:-11] + 'database/'
-        print(t)
         dirs = os.listdir(t)
         for dir in dirs:
             if '.' not in dir:
@@ -48,7 +48,7 @@ class Engine:
     CREATE TABLE database_name.table_name (column_name1 data_type not_null unique, column_name2 data_type null) primary_key (column_name1, column_name2) foreign_key (column_name_f, column_namef1) references database_name.table_name (column_name);
 
     """
-    def createTable(self, database_name, table_name, table_info):
+    def createTable(self, db, table_name, table_info):
         # print(database_name)
         database_dir='./ZibiDB/database/'+database_name
         std_type=['CHAR', 'FLOAT', 'INT']
@@ -104,14 +104,6 @@ class Engine:
                 null_status.append(tmp[2].upper())
                 unique_status.append(tmp[3].upper())
             else: raise Exception('ERROR: Invalid syntax.')
-
-        # print('null', null_status)
-        # print('unique', unique_status)
-
-        # print(table_attrs)
-        # print(attrs)
-        # print(_type)
-        # print(null_status)
         
         # Get primary key
         primary_key=[]
@@ -134,9 +126,6 @@ class Engine:
                                 primary_key.append(table_info.pop(0).strip().lower())
                 else: raise Exception('ERROR: Invalid syntax.')
 
-
-        # print(primary_key)
-        # Get foreign key
         foreign_key=[]
         if table_info:
             if table_info[0].upper()=='FOREIGN':
@@ -157,8 +146,6 @@ class Engine:
                                 foreign_key.append(table_info.pop(0).strip().lower())
                 else: raise Exception('ERROR: Invalid syntax.')
 
-        # print(primary_key)
-        # print(foreign_key)
         ref_database=[]
         ref_table=[]
         ref_column=[]
@@ -204,9 +191,6 @@ class Engine:
                     table_info.pop(0)    # Pop 'UPDATE'
                     on_update=table_info.pop(0)
 
-        # print(ref_database)
-        # print(ref_table)
-        # print(ref_columns)
         ref_info=[{'database': ref_database, 'schema': ref_table, 'columns': ref_columns, 'on_delete': on_delete.upper(), 'on_update': on_update.upper()}]
 
         attrs_ls=[]
@@ -221,29 +205,27 @@ class Engine:
                 }]
             })
 
+        foreignk = {}
+        r = 0
+        for attri in foreign_key:
+            foreignk[attri] = ref_info[0]
+            i += 1
+
         info=[{
-            'Attributes':attrs_ls,
+            'name':table_name,
+            'attrs':attrs_ls,
             # 'Types': _type,
             # 'Null_status': null_status,
-            'Primary_key': primary_key,
-            'Foreign_key': foreign_key,
-            'Reference': ref_info
+            'primary': primary_key,
+            'foreign': foreign_key,
         }]
 
-        # print(info)
-        with open(database_dir+'/'+table_name+'.json', 'w') as f:
-            json.dump({table_name: info}, f)
-            f.close()
-        with open(database_dir+'/'+table_name+'.csv', 'w', newline='') as f:
-            writer=csv.writer(f)
-            writer.writerow(attrs)
-            f.close()
-
-        print('PASS: The schema is created.')
+        db.add_table(info)
+        print('PASS: Table %s is created.' %table_name)
 
     # DROP TABLE a;
     def dropTable(self, db, table_name):
-        db.drop_table(able_name)
+        db.drop_table(table_name)
 
 
     # insert into notap.perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
