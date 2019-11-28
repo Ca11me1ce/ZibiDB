@@ -33,7 +33,7 @@ class Engine:
         db.load()
         return db
 
-    # show
+    # show;
     def show(self):
         t = sys.argv[0]      
         t = t[:-11] + 'database/'
@@ -49,13 +49,7 @@ class Engine:
 
     """
     def createTable(self, db, table_name, table_info):
-        # print(database_name)
-        database_dir='./ZibiDB/database/'+database_name
         std_type=['CHAR', 'FLOAT', 'INT']
-
-        # Check database and schema existence
-        if not os.path.exists(database_dir):raise Exception('ERROR: '+database_name.upper()+' is invalid database.')
-        if os.path.exists(database_dir+'/'+table_name+'.json') or os.path.exists(database_dir+'/'+table_name+'.csv'):raise Exception('ERROR: '+table_name.upper()+' is exist schema.')
 
         # Get attributes
         # (column_name1 data_type not_null, column_name2 data_type null)
@@ -222,6 +216,8 @@ class Engine:
 
         db.add_table(info)
         print('PASS: Table %s is created.' %table_name)
+
+        return db
 
     # DROP TABLE a;
     def dropTable(self, db, table_name):
@@ -541,7 +537,12 @@ class Engine:
         db = None
         # continue running until recieve the exit command.
         while True:
-            commandline = input('ZibiDB>')
+            inputstr = 'ZibiDB>'
+            if db :
+                inputstr = db.name + '>'
+            else:
+                inputstr = 'ZibiDB>'
+            commandline = input(inputstr)
             if commandline=='':
                 continue
             commandline=commandline.replace(';', '')
@@ -571,7 +572,10 @@ class Engine:
             if action['type'] == 'database':
                 db = self.createDatabase(action['name'])
             elif action['type'] == 'table':
-                self.createTable(action['database_name'], action['table_name'], action['info'])
+                if db:
+                    db = self.createTable(db, action['table_name'], action['info'])
+                else:
+                    raise Exception('ERROR: Please choose a database to use first.')
             return 'continue', db
 
         if action['mainact'] == 'drop':
@@ -579,11 +583,16 @@ class Engine:
                 if db:
                     if action['name'] == db.name:
                         self.dropDatabase(db)
+                        db = None
                     else:
-                        raise Exception('ERROR: Database %s doesnt exist.' % db.name)
+                        temp = db
+                        db = Database(action['name'])
+                        self.dropDatabase(db)
+                        db = temp
                 else:
-                    raise Exception('ERROR: Database %s doesnt exist.' % db.name)
-                db = None
+                    db = Database(action['name'])
+                    self.dropDatabase(db)
+                    db = None
             elif action['type'] == 'table':
                 self.dropTable(db, action['table_name'])
             return 'continue', db

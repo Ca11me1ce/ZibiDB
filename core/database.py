@@ -3,6 +3,7 @@ import os
 import shutil
 from ZibiDB.core.table import Table
 import pickle
+import sys
 
 class Database():
     def __init__(self, name):
@@ -20,9 +21,13 @@ class Database():
         if not os.path.exists(_database):
             os.makedirs(_database)
 
-        # If the database is exist, ERROR
+        # If the database is exist, rewrite
         if os.path.exists(_database + database):
-            raise Exception('ERROR: Database %s exists already.' % database)
+            file = open(_database + database, "wb+")
+            pickle.dump(self, file)
+            file.close()
+            print('PASS: Database %s is saved.' % database)
+            return
 
         # If the database is not exist, create and PASS
         elif not os.path.exists(_database + database):
@@ -38,7 +43,9 @@ class Database():
     # Load an exsiting database
     def load(self):
         database = self.name.replace(';', '').lower()
-        _database = '../database/'
+        _database = sys.argv[0]      
+        _database = _database[:-11] + 'database/'
+
         if not os.path.exists(_database + database):
             raise Exception('ERROR: Database %s doesnt exist.' % database)
 
@@ -54,8 +61,8 @@ class Database():
 
     def drop_database(self):
         database = self.name.replace(';', '').lower()
-        _database = '../database/'
-
+        _database = sys.argv[0]      
+        _database = _database[:-11] + 'database/'
         # If there is no database, pass
         if not os.path.exists(_database):
             raise Exception('ERROR: No any databases')
@@ -75,7 +82,7 @@ class Database():
 
     # Add new table to dabase
     def add_table(self, info):
-        self.tables[table_name] = Table(info)
+        self.tables[info[table_name]] = Table(info)
 
     # Drop exit table from database
     def drop_table(self, name):

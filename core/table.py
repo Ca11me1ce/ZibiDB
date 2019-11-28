@@ -34,23 +34,6 @@ class Table:
         self.row.to_csv(name)
 
         print('PASS: The schema is created.')
-    
-    """
-    def delete(self):
-        database_dir='./ZibiDB/database/'+self.database
-
-        # Check database
-        if not os.path.exists(database_dir):
-            raise Exception('ERROR: '+self.database.upper()+' is invalid database.')
-
-        if not os.path.exists(database_dir+'/'+self.name+'.json') and not os.path.exists(database_dir+'/'+table_name+'.csv'):
-            raise Exception('ERROR: '+self.name.upper()+' is not exist schema.')
-
-        os.remove(database_dir+'/'+self.name+'.json')
-        os.remove(database_dir+'/'+self.name+'.csv')
-
-        print('PASS: The schema is dropped.')
-    """
         
     def serialize(self):
         pass
