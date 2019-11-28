@@ -213,8 +213,6 @@ class Engine:
         info={
             'name':table_name,
             'attrs':attrs_ls,
-            # 'Types': _type,
-            # 'Null_status': null_status,
             'primary': primary_key,
             'foreign': foreignk,
         }
