@@ -6,7 +6,8 @@ $python -m ZibiDB
 
 commands:
 
-show;
+show databases;
+show tables;
 create database x;
 drop database x;
 use database x;

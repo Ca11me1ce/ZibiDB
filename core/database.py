@@ -10,6 +10,11 @@ class Database():
         self.tables = {}
         self.name = name
         #self.create_dir(self.name)
+
+    # Display all tables
+    def display(self):
+        for table in self.tables:
+            print (table)
     
     # Save the whole database as a binary file
     def save(self):
