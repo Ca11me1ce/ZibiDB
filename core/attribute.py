@@ -9,17 +9,43 @@ class Attribute:
         self.notnull = dic['notnull']
         self.unique = dic['unique']
 
-    def typecheck(self, value: any): -> bool:
-    """
-    Check whether value is valid
-    TODO:
-    -Check type by self.type
-    -Check  notnull by self.notnull
-    -Check unique by self.unique
-    -Use constraincheck to check constrain 
-    -Please manage check order wisely
-    -Raise error for invalid information
-    """
+    def typecheck(self, value: any) -> bool:
+        """
+        Check whether value is valid
+        TODO:
+        -Check type by self.type
+        -Check  notnull by self.notnull
+        -Check unique by self.unique
+        -Use constraincheck to check constrain 
+        -Please manage check order wisely
+        -Raise error for invalid information
+        """
+        if self.type=='CAHR':
+            if type(value)!=type('1'):
+                raise Exception('ERROR: Invalid type.')
+        elif self.type=='INT':
+            if type(value)!=type(1):
+                raise Exception('ERROR: Invalid type.')
+        elif self.type=='FLOAT':
+            if type(value)!=type(1.0):
+                raise Exception('ERROR: Invalid type.')
+        else:
+            raise Exception('ERROR: Invalid type.')
+
+        if self.notnull:
+            if value==None:
+                raise Exception('ERROR: The value must be not null.')
+        
+        # TODO: Check unique
+        if self.unique:
+            raise Exception('ERROR: Check unique is not finished.')
+
+        if self.constraincheck(value)==False:
+            raise Exception('ERROR: The value do not satisfied to the constrain.')
+
+        return True
+
+
         
     def constraincheck(self, value):
         # constrain = [T/F, None/value, T/F, None/value]

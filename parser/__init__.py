@@ -219,7 +219,7 @@ def insert(action):
         return{
             'mainact' : 'insert',
             'table_name' : action[2].lower(),
-            'attrs' : attr
+            'attrs' : attr,
             'data' : data
         }
 
