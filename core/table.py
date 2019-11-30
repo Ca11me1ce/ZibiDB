@@ -89,6 +89,9 @@ class Table:
     
     def search(self, attr, situation, condition, gb):
         # attr: [] or *
+        # situation: number means different conditions
+        # gb: true/false have group by
+        # condition: [], base on situation
         df = pd.DataFrame(self.data)
         if situation == 0:  # no where
             if attr == '*':
@@ -121,6 +124,13 @@ class Table:
 
 
     def group_by(self, situation, attr_gr, attr, df):
+        """
+        :param situation: calculation of group by
+        :param attr_gr: the attrs for group
+        :param attr: attrs for calculation
+        :param df: dataframe for group by
+        :return: a dataframe
+        """
         gb = df.groupby(attr_gr)
         if situation == 0:
             return gb[attr].max()
