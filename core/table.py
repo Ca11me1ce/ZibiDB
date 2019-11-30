@@ -2,7 +2,7 @@ import pandas as pd
 import json
 import os
 import numpy as np
-from core.attribute import Attribute
+from ZibiDB.core.attribute import Attribute
 
 class Table:
     # info = {}
@@ -55,7 +55,6 @@ class Table:
             # Hash data
             self.data[tuple(prmkvalue)]=attvalue
         else:
-
             # Reorder by the oder of self.attrs
             attrs_dict=dict()
             for name in self.attrs.keys():
@@ -77,7 +76,7 @@ class Table:
             attvalue=list(attrs_dict.values())
 
             # Hash data
-            self.data[prmkvalue] = attvalue
+            self.data[tuple(prmkvalue)] = attvalue
     def uniquecheck(self, value):
         pass
         

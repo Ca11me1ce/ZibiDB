@@ -2,7 +2,7 @@ CREATE TABLE table_name (column_name1 data_type not_null unique, column_name2 da
 
 CREATE TABLE Person (id int not_null unique, position char not_null, name char not_null, address char not_null) primary key (id) foreign key (position) references NotAP.work (position_id) on delete no_action on update cascade;
 
-insert into notap.person (id, position, name, address) values (1, 'manager', 'Yang', 'home')
+insert into person (id, position, name, address) values (1, 'manager', 'Yang', 'home')
 
 insert into notap.perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
 

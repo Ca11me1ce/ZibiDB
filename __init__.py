@@ -64,7 +64,8 @@ class Engine:
     # insert into perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
     def insertTable(self, db, table_name, attrs, data):
         db.tables[table_name].insert(attrs, data)
-        
+        print (db.tables[table_name].data)
+        return db
         
     def selectQuery(self, info):
 
@@ -339,7 +340,7 @@ class Engine:
             return 'continue', db
 
         if action['mainact'] == 'insert':
-            self.insertTable(db, action['table_name'], action['attrs'], action['data'])
+            db = self.insertTable(db, action['table_name'], action['attrs'], action['data'])
             return 'continue', db
 
         if action['mainact'] == 'select':
