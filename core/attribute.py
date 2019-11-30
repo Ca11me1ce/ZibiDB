@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from core.table import Table
-
 class Attribute:
     # dic = {name:'', type: '', constrain:[], unique: true/false}
     def __init__(self, dic):
@@ -37,14 +35,13 @@ class Attribute:
                 raise Exception('ERROR: Invalid type.')
         else:
             raise Exception('ERROR: Invalid type.')
-        
-        # TODO: Check unique
-        if self.unique:
-            if Table.uniquecheck(self, value)==False:
-                raise Exception('ERROR: Check unique is not finished.')
 
         if self.constraincheck(value)==False:
             raise Exception('ERROR: The value do not satisfied to the constrain.')
+
+        # TODO: Check unique
+        if self.unique:
+            return 'UNIQUE'
 
         return True
 

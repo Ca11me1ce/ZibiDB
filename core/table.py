@@ -34,6 +34,17 @@ class Table:
             # Must enter full-attr values by order
             if len(data)!=len(self.attrs):
                 raise Exception('ERROR: Full-attr values is needed')
+
+            # TODO: typecheck
+            for value in data:
+                # typecheck()
+                # If false, raise error in typecheck()
+                # If true, nothing happens and continue
+                # If unique, call self uniquecheck()
+                if Attribute.typecheck(self, value)=='UNIQUE':
+                    # If it is not unique, raise error in the function
+                    # Else, continue
+                    self.uniquecheck(value)
             
             # Get primary-key values
             for _ in range(len(self.primary)):
