@@ -213,15 +213,82 @@ def insert(action):
         TODO:
         Put new insert parser there and fit into attr:list and data:list below.
         """
-        attr = []
+        attrs = []
         data = []
 
-        return{
-            'mainact' : 'insert',
-            'table_name' : action[2].lower(),
-            'attrs' : attr,
-            'data' : data
-        }
+        '''
+        '''
+        action.pop(0) # Pop Insert
+        action.pop(0) # Pop INTO
+        table_name=action.pop(0).lower()    #Pop table name
+        if action[0].upper()=='VALUES':    # insert table values ()
+            # No attrs, only values
+            action.pop(0) #Pop VALUE
+            if '(' in action[0]:
+                for value in action:
+                    elem=value
+                    data.append(value.strip('() '))
+                    if ')' in elem:
+                        return{
+                            'mainact' : 'insert',
+                            'table_name' : table_name,
+                            'attrs' : attrs,
+                            'data' : data
+                        }
+
+            else:
+                raise Exception('ERROR: Invalid syntax')
+            raise Exception('ERROR: Invalid syntax')
+        else:   # attrs and data
+
+            # Get attrs
+            if '(' in action[0]:
+                count=0
+                for elem in action:
+                    if ')' in elem:
+                        attrs.append(elem.strip('() ,'))
+                        count+=1
+                        break
+                    attrs.append(elem.strip('() ,'))
+                    count+=1
+                for _ in range(count):
+                    action.pop(0)
+                if action==[]: 
+                    raise Exception('ERROR: No data')
+                # print(attrs)
+                if len(attrs)!=len(set(attrs)): 
+                    raise Exception('ERROR: Duplicated attributes')
+                if action[0].upper()!='VALUES':
+                    raise Exception('ERROR: Invalid syntax')
+                action.pop(0)
+
+            else:
+                raise Exception('ERROR: Invalid syntax')
+
+            if '(' in action[0]:
+                for elem in action:
+                    if ')' in elem:
+                        data.append(elem.strip('() ,'))
+                        if len(attrs)!=len(data):
+                            raise Exception('ERROR: Data length is not correponding to attributes.')
+                        return{
+                            'mainact' : 'insert',
+                            'table_name' : table_name,
+                            'attrs' : attrs,
+                            'data' : data
+                        }
+                    data.append(elem.strip('() ,'))
+                raise Exception('ERROR: Invalid syntax')
+                
+            else:
+                raise Exception('ERROR: Invalid syntax')
+
+        # return{
+        #     'mainact' : 'insert',
+        #     'table_name' : table_name,
+        #     'attrs' : attrs,
+        #     'data' : data
+        # }
 
     else:
         raise Exception('Syntax error! Recommend : insert into ')

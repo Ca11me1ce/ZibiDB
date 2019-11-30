@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from core.table import Table
+
 class Attribute:
     # dic = {name:'', type: '', constrain:[], unique: true/false}
     def __init__(self, dic):
@@ -20,6 +22,10 @@ class Attribute:
         -Please manage check order wisely
         -Raise error for invalid information
         """
+        if self.notnull:
+            if value==None:
+                raise Exception('ERROR: The value must be not null.')
+
         if self.type=='CAHR':
             if type(value)!=type('1'):
                 raise Exception('ERROR: Invalid type.')
@@ -31,14 +37,11 @@ class Attribute:
                 raise Exception('ERROR: Invalid type.')
         else:
             raise Exception('ERROR: Invalid type.')
-
-        if self.notnull:
-            if value==None:
-                raise Exception('ERROR: The value must be not null.')
         
         # TODO: Check unique
         if self.unique:
-            raise Exception('ERROR: Check unique is not finished.')
+            if Table.uniquecheck(self, value)==False:
+                raise Exception('ERROR: Check unique is not finished.')
 
         if self.constraincheck(value)==False:
             raise Exception('ERROR: The value do not satisfied to the constrain.')
