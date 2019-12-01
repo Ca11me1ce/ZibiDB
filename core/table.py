@@ -72,8 +72,6 @@ class Table:
 
             # Get primary-key values
             for name in self.primary:
-                if name in prmkvalue:
-                    raise Exception('ERROR: The attr is already in hash keys.')
                 if attrs_dict[name]==None:
                     raise Exception('ERROR: Primary key cannot be NULL.')
                 prmkvalue.append(attrs_dict[name])
@@ -84,7 +82,10 @@ class Table:
             attvalue=list(attrs_dict.values())
 
             # Hash data
-            self.data[tuple(prmkvalue)] = attvalue
+            if tuple(prmkvalue) not in self.data.keys():
+                self.data[tuple(prmkvalue)] = attvalue
+            else:
+                raise Exception('ERROR: Primary key value collision')
         
     def serialize(self):
         pass
