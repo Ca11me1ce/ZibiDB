@@ -9,6 +9,7 @@ class Table:
     # need a load() outside
     def __init__(self, attrls, info):
         self.data = {}
+        self.datalist = []
         self.name = info['name']
         self.attrls = attrls
         self.attrs = {} #{name: attributeobj}
@@ -83,6 +84,7 @@ class Table:
 
             # Hash data
             if tuple(prmkvalue) not in self.data.keys():
+                self.datalist = self.datalist + [prmkvalue + attvalue]
                 self.data[tuple(prmkvalue)] = attvalue
             else:
                 raise Exception('ERROR: Primary key value collision')
@@ -98,17 +100,18 @@ class Table:
         # situation: number means different conditions
         # gb: true/false have group by
         # condition: [], base on situation
-        df = pd.DataFrame(self.data)
+        df = pd.DataFrame(self.datalist, columns = attrls)# I think we need index here, but I am not familiar with this part wich index will be better? BTW, code below need to be modified.
         if situation == 0:  # no where
             if attr == '*':
-                return self.data
-            else:
-                res = {}
-                for a in attr:
-                    if a not in self.attrs:
-                        raise Exception('ERROR: Attribute is not exist.')
-                    res[a] = self.data[a]
-                return res
+                return df
+            # I dont think it can work. Is there any other way to select colums in pandas? 
+            # else:
+            #     res = {}
+            #     for a in attr:
+            #         if a not in self.attrs:
+            #             raise Exception('ERROR: Attribute is not exist.')
+            #         res[a] = self.data[a]
+            #     return res
         if gb:
             temp = self.group_by(condition[2], condition[3], attr, df)
         else:
