@@ -143,6 +143,16 @@ class Table:
         if situation == 4:
             return gb[attr].value_counts()
 
+    def df_and(self, df1, df2, attrs):
+        return pd.merge(df1, df2, on=attrs)
+    def df_or(self, df1, df2, attrs):
+        return pd.merge(df1, df2, how='outer')
+
+    def table_join(self, table, attr):
+        df1 = pd.DataFrame(self.data)
+        df2 = pd.DataFrame(table.data)
+        return pd.merge(df1, df2, on=attr)
+
 
 # if __name__ == '__main__':
 #     df = pd.DataFrame(np.random.random(size=(3,4)))
