@@ -51,8 +51,8 @@ class Engine:
     CREATE TABLE table_name (column_name1 data_type not_null, column_name2 data_type null) primary_key (column_name1, column_name2) foreign_key (column_name_f, column_namef1) references database_name.table_name (column_name);
     CREATE TABLE table_name (column_name1 data_type not_null unique, column_name2 data_type null) primary_key (column_name1, column_name2) foreign_key (column_name_f, column_namef1) references database_name.table_name (column_name);
     """
-    def createTable(self, db, info):
-        db.add_table(info)
+    def createTable(self, db, attrs, info):
+        db.add_table(attrs, info)
         print('PASS: Table %s is created.' %info['name'])
         return db
 

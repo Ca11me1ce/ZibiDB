@@ -20,7 +20,7 @@ class Table:
             temp = Attribute(attr)
             self.attrs[attr['name']] = temp
             if temp.unique:
-                uniqueattr[attr['name']] = {}
+                self.uniqueattr[attr['name']] = {}
 
     def insert(self, attrs: list, data: list) -> None:
         """
@@ -48,7 +48,7 @@ class Table:
                 # If false, raise error in typecheck()
                 # If true, nothing happens and continue
                 # If unique, call self uniquecheck()
-                if value in uniqueattr[attname].keys():
+                if value in self.uniqueattr[attname].keys():
                     raise Exception('ERROR: Unique attribute values are in conflict' + data)
                     self.attrs[attname].typecheck(self, value)
                     # If it is not unique, raise error in the function
