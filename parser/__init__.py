@@ -187,6 +187,7 @@ def create(action):
             'mainact' : 'create',
             'type' : 'table',
             'name' : table_name,
+            'attrls' : attrs,
             'info' : info
         }
 
@@ -271,6 +272,7 @@ def insert(action):
                         data.append(elem.strip('() ,'))
                         if len(attrs)!=len(data):
                             raise Exception('ERROR: Data length is not correponding to attributes.')
+
                         return{
                             'mainact' : 'insert',
                             'table_name' : table_name,
@@ -282,13 +284,6 @@ def insert(action):
                 
             else:
                 raise Exception('ERROR: Invalid syntax')
-
-        # return{
-        #     'mainact' : 'insert',
-        #     'table_name' : table_name,
-        #     'attrs' : attrs,
-        #     'data' : data
-        # }
 
     else:
         raise Exception('Syntax error! Recommend : insert into ')

@@ -15,7 +15,6 @@ class Attribute:
         TODO:
         -Check type by self.type
         -Check  notnull by self.notnull
-        -Check unique by self.unique
         -Use constraincheck to check constrain 
         -Please manage check order wisely
         -Raise error for invalid information
@@ -39,13 +38,7 @@ class Attribute:
         if self.constraincheck(value)==False:
             raise Exception('ERROR: The value do not satisfied to the constrain.')
 
-        # TODO: Check unique
-        if self.unique:
-            return 'UNIQUE'
-
         return True
-
-
         
     def constraincheck(self, value):
         # constrain = [T/F, None/value, T/F, None/value]

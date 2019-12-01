@@ -4,6 +4,7 @@ import csv
 import json
 import pandas
 import sys
+import pickle
 from ZibiDB.parser import parse
 from ZibiDB.core.database import Database
 
@@ -29,8 +30,20 @@ class Engine:
 
     # use database test;
     def useDatabase(self, name):
-        db = Database(name)
-        db.load()
+        _database = sys.argv[0]      
+        _database = _database[:-11] + 'database/'
+
+        if not os.path.exists(_database + name):
+            raise Exception('ERROR: Database %s doesnt exist.' % name)
+
+        elif os.path.exists(_database + name):
+            file = open(_database + name, "rb")
+            db = pickle.load(file)
+            file.close()
+            print('You are now using Database: %s !' % name)
+
+        else:
+            raise Exception('ERROR: Invalid command.')
         return db
 
     # show databases;
@@ -51,8 +64,8 @@ class Engine:
     CREATE TABLE table_name (column_name1 data_type not_null, column_name2 data_type null) primary_key (column_name1, column_name2) foreign_key (column_name_f, column_namef1) references database_name.table_name (column_name);
     CREATE TABLE table_name (column_name1 data_type not_null unique, column_name2 data_type null) primary_key (column_name1, column_name2) foreign_key (column_name_f, column_namef1) references database_name.table_name (column_name);
     """
-    def createTable(self, db, info):
-        db.add_table(info)
+    def createTable(self, db, attrs, info):
+        db.add_table(attrs, info)
         print('PASS: Table %s is created.' %info['name'])
         return db
 
@@ -64,7 +77,8 @@ class Engine:
     # insert into perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
     def insertTable(self, db, table_name, attrs, data):
         db.tables[table_name].insert(attrs, data)
-        
+        print (db.tables[table_name].data)
+        return db
         
     def selectQuery(self, info):
 
@@ -314,7 +328,7 @@ class Engine:
             elif action['type'] == 'table':
                 if db:
                     if action['name'] in db.tables.keys(): raise Exception('ERROR: Table %s is exsited.' %action['name'])
-                    db = self.createTable(db, action['info'])
+                    db = self.createTable(db, action['attrls'], action['info'])
                 else:
                     raise Exception('ERROR: Please choose a database to use first.')
             return 'continue', db
@@ -339,7 +353,7 @@ class Engine:
             return 'continue', db
 
         if action['mainact'] == 'insert':
-            self.insertTable(db, action['table_name'], action['attrs'], action['data'])
+            db = self.insertTable(db, action['table_name'], action['attrs'], action['data'])
             return 'continue', db
 
         if action['mainact'] == 'select':
