@@ -4,6 +4,7 @@ import csv
 import json
 import pandas
 import sys
+import pickle
 from ZibiDB.parser import parse
 from ZibiDB.core.database import Database
 
@@ -29,8 +30,20 @@ class Engine:
 
     # use database test;
     def useDatabase(self, name):
-        db = Database(name)
-        db.load()
+        _database = sys.argv[0]      
+        _database = _database[:-11] + 'database/'
+
+        if not os.path.exists(_database + name):
+            raise Exception('ERROR: Database %s doesnt exist.' % name)
+
+        elif os.path.exists(_database + name):
+            file = open(_database + name, "rb")
+            db = pickle.load(file)
+            file.close()
+            print('You are now using Database: %s !' % name)
+
+        else:
+            raise Exception('ERROR: Invalid command.')
         return db
 
     # show databases;

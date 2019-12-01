@@ -85,8 +85,6 @@ class Table:
 
             # Hash data
             self.data[tuple(prmkvalue)] = attvalue
-    def uniquecheck(self, value):
-        pass
         
     def serialize(self):
         pass
