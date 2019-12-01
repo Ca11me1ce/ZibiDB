@@ -7,15 +7,20 @@ from ZibiDB.core.attribute import Attribute
 class Table:
     # info = {}
     # need a load() outside
-    def __init__(self, info):
+    def __init__(self, attrls, info):
         self.data = {}
         self.name = info['name']
+        self.attrls = attrls
         self.attrs = {} #{name: attributeobj}
         self.primary = info['primary']
         self.foreign = info['foreign']
+        self.uniqueattr = {} # {attribute_name: {attibute_value: primarykey_value}}
 
         for attr in info['attrs']:
-            self.attrs[attr['name']] = Attribute(attr)
+            temp = Attribute(attr)
+            self.attrs[attr['name']] = temp
+            if temp.unique:
+                uniqueattr[attr['name']] = {}
 
     def insert(self, attrs: list, data: list) -> None:
         """
@@ -32,19 +37,22 @@ class Table:
         if attrs==[]:
             # TODO: typecheck
             # Must enter full-attr values by order
-            if len(data)!=len(self.attrs):
+            if len(data)!=len(self.attrls):
                 raise Exception('ERROR: Full-attr values is needed')
 
             # TODO: typecheck
-            for value in data:
+            for i in data:
+                value = data[i]
+                attname = self.attrls[i]
                 # typecheck()
                 # If false, raise error in typecheck()
                 # If true, nothing happens and continue
                 # If unique, call self uniquecheck()
-                if Attribute.typecheck(self, value)=='UNIQUE':
+                if value in uniqueattr[attname].keys():
+                    raise Exception('ERROR: Unique attribute values are in conflict' + data)
+                    self.attrs[attname].typecheck(self, value)
                     # If it is not unique, raise error in the function
                     # Else, continue
-                    self.uniquecheck(value)
             
             # Get primary-key values
             for _ in range(len(self.primary)):
@@ -57,7 +65,7 @@ class Table:
         else:
             # Reorder by the oder of self.attrs
             attrs_dict=dict()
-            for name in self.attrs.keys():
+            for name in self.attrls:
                 attrs_dict[name]=None
             for i in range(len(attrs)):
                 attrs_dict[attrs[i]]=data[i]

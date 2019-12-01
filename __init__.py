@@ -315,7 +315,7 @@ class Engine:
             elif action['type'] == 'table':
                 if db:
                     if action['name'] in db.tables.keys(): raise Exception('ERROR: Table %s is exsited.' %action['name'])
-                    db = self.createTable(db, action['info'])
+                    db = self.createTable(db, action['attrls'], action['info'])
                 else:
                     raise Exception('ERROR: Please choose a database to use first.')
             return 'continue', db

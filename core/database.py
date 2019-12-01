@@ -86,8 +86,8 @@ class Database():
             raise Exception('ERROR: Invalid command.')
 
     # Add new table to dabase
-    def add_table(self, info):
-        self.tables[info['name']] = Table(info)
+    def add_table(self, attrls, info):
+        self.tables[info['name']] = Table(attrls, info)
 
     # Drop exit table from database
     def drop_table(self, name):

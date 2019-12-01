@@ -187,6 +187,7 @@ def create(action):
             'mainact' : 'create',
             'type' : 'table',
             'name' : table_name,
+            'attrls' : attrs,
             'info' : info
         }
 
