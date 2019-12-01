@@ -78,6 +78,7 @@ class Engine:
     def insertTable(self, db, table_name, attrs, data):
         db.tables[table_name].insert(attrs, data)
         print (db.tables[table_name].data)
+        print (db.tables[table_name].datalist)
         return db
         
     def selectQuery(self, info):
