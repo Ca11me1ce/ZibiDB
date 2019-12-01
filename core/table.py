@@ -100,36 +100,30 @@ class Table:
         # situation: number means different conditions
         # gb: true/false have group by
         # condition: [], base on situation
-        df = pd.DataFrame(self.datalist, columns = attrls)# I think we need index here, but I am not familiar with this part wich index will be better? BTW, code below need to be modified.
+        df = pd.DataFrame(self.datalist, columns = self.attrls)# I think we need index here, but I am not familiar with this part wich index will be better? BTW, code below need to be modified.
         if situation == 0:  # no where
             if attr == '*':
                 return df
-            # I dont think it can work. Is there any other way to select colums in pandas? 
-            # else:
-            #     res = {}
-            #     for a in attr:
-            #         if a not in self.attrs:
-            #             raise Exception('ERROR: Attribute is not exist.')
-            #         res[a] = self.data[a]
-            #     return res
+            else:
+                return df.loc[:, attr]
         if gb:
             temp = self.group_by(condition[2], condition[3], attr, df)
         else:
             temp = df[attr]
 
         if situation == 1:
-            return temp[df[condition[0]] == condition[1]]
+            return temp.loc[df[condition[0]] == condition[1]]
         if situation == 2:
-            return temp[df[condition[0]] > condition[1]]
+            return temp.loc[df[condition[0]] > condition[1]]
         if situation == 3:
-            return temp[df[condition[0]] >= condition[1]]
+            return temp.loc[df[condition[0]] >= condition[1]]
         if situation == 4:
-            return temp[df[condition[0]] < condition[1]]
+            return temp.loc[df[condition[0]] < condition[1]]
         if situation == 5:
-            return temp[df[condition[0]] <= condition[1]]
+            return temp.loc[df[condition[0]] <= condition[1]]
 
         if situation == 6:
-            return temp[condition[1] in df[condition[0]]]
+            return temp.loc[df[condition[0]].str.contains(condition[1])]
 
 
     def group_by(self, situation, attr_gr, attr, df):
