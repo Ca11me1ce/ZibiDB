@@ -2,7 +2,7 @@ import pandas as pd
 import json
 import os
 import numpy as np
-from ZibiDB.core.attribute import Attribute
+from core.attribute import Attribute
 
 class Table:
     # info = {}
@@ -101,29 +101,42 @@ class Table:
         # gb: true/false have group by
         # condition: [], base on situation
         df = pd.DataFrame(self.datalist, columns = self.attrls)# I think we need index here, but I am not familiar with this part wich index will be better? BTW, code below need to be modified.
-        if situation == 0:  # no where
-            if attr == '*':
-                return df
-            else:
-                return df.loc[:, attr]
         if gb:
             temp = self.group_by(condition[2], condition[3], attr, df)
         else:
             temp = df[attr]
 
+        if situation == 0:  # no where
+            if attr == '*':
+                return temp
+            else:
+                return temp.loc[:, attr]
+
         if situation == 1:
-            return temp.loc[df[condition[0]] == condition[1]]
+            if attr == '*':
+                return temp.loc[temp[condition[0]] == condition[1]]
+            return temp.loc[temp[condition[0]] == condition[1], attr]
         if situation == 2:
-            return temp.loc[df[condition[0]] > condition[1]]
+            if attr == '*':
+                return temp.loc[temp[condition[0]] > condition[1]]
+            return temp.loc[temp[condition[0]] > condition[1]]
         if situation == 3:
-            return temp.loc[df[condition[0]] >= condition[1]]
+            if attr == '*':
+                return temp.loc[temp[condition[0]] >= condition[1]]
+            return temp.loc[temp[condition[0]] >= condition[1]]
         if situation == 4:
-            return temp.loc[df[condition[0]] < condition[1]]
+            if attr == '*':
+                return temp.loc[temp[condition[0]] < condition[1]]
+            return temp.loc[temp[condition[0]] < condition[1]]
         if situation == 5:
-            return temp.loc[df[condition[0]] <= condition[1]]
+            if attr == '*':
+                return temp.loc[temp[condition[0]] <= condition[1]]
+            return temp.loc[temp[condition[0]] <= condition[1]]
 
         if situation == 6:
-            return temp.loc[df[condition[0]].str.contains(condition[1])]
+            if attr == '*':
+                return temp.loc[temp[condition[0]].str.contains(condition[1])]
+            return temp.loc[temp[condition[0]].str.contains(condition[1])]
 
 
     def group_by(self, situation, attr_gr, attr, df):
@@ -134,6 +147,8 @@ class Table:
         :param df: dataframe for group by
         :return: a dataframe
         """
+        if attr == '*':
+            raise Exception('ERROR: Invalid search.')
         gb = df.groupby(attr_gr)
         if situation == 0:
             return gb[attr].max()
@@ -148,7 +163,7 @@ class Table:
 
     def df_and(self, df1, df2, attrs):
         return pd.merge(df1, df2, on=attrs)
-    def df_or(self, df1, df2, attrs):
+    def df_or(self, df1, df2):
         return pd.merge(df1, df2, how='outer')
 
     def table_join(self, table, attr):
@@ -157,7 +172,17 @@ class Table:
         return pd.merge(df1, df2, on=attr)
 
 
-# if __name__ == '__main__':
-#     df = pd.DataFrame(np.random.random(size=(3,4)))
-#     df.columns = list('abcd')
-#     print(df[df['c']<0.5])
+if __name__ == '__main__':
+    data = []
+    for i in range(1001):
+        if i > 500:
+            data.append([i,2])
+        else:
+            data.append([i,1])
+    attr1 = {'name': 'id', 'type': 'INT', 'notnull': False, 'unique': False}
+    attr2 = {'name': 'num', 'type': 'INT', 'notnull': False, 'unique': False}
+    info = {'name': 'test', 'attrs': [attr1, attr2], 'primary': '', 'foreign': []}
+    table = Table(['id', 'num'], info)
+    table.datalist = data
+    res = table.search(['id'], 1, ['id', 500, 0, ['num']], True)
+    print(res)
