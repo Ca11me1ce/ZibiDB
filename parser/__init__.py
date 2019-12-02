@@ -289,10 +289,314 @@ def insert(action):
         raise Exception('Syntax error! Recommend : insert into ')
 
 def select(action):
-    return{
-        'mainact' : 'select',
-        'content' : action[1:]
+	if action[0].upper()=='SELECT':
+		action.pop(0)
+
+	# Get distinct
+	_distinct=0
+	if action[0].upper()=='DISTINCT':
+		_distinct=1
+		action.pop(0)
+	print('distinct: ', _distinct)
+	key_words=['FROM', 'WHERE', 'ORDER', 'GROUP', 'BY']
+
+	# Get attrs, and aggragate function
+	select_attrs=[]
+	# attrs_dict=dict()
+	while action[0].upper() not in key_words:
+		select_attrs.append(action.pop(0).lower().strip(', '))	# attr list
+
+	attrs_dict=parse_attrs(select_attrs)
+	print('attrs: ', attrs_dict)
+
+	# Get table names
+	# Table names
+	select_tables=[]
+	# print(action)
+	if action.pop(0).upper()=='FROM':
+		while action[0].upper() not in key_words:
+			select_tables.append(action.pop(0).lower().strip(', '))
+			if action==[]:
+				break
+	else: raise Exception('ERROR: Invalid syntax.')
+	print('tables: ', select_tables)
+
+	# Where clause
+	where_clause=[]
+	where_expression=dict()
+	# conditions=[]
+	# op=[]
+	if action:
+		if action[0].upper()=='WHERE':
+			action.pop(0)
+			while action[0].upper() not in key_words:
+				where_clause.append(action.pop(0).strip(', '))
+				if not action:
+					break
+			conditions=reorder_where_clause(where_clause)
+
+			# where clause poland expression
+			where_expression=parse_conditions(conditions)	# Parse where clause
+	print('where clause: ', where_expression)
+
+	# Get group by clause
+	groupBy_clause=[]
+	groupBy_expression=dict()
+	if action:
+		if action[0].upper()=='GROUP':
+			action.pop(0)	# Pop group
+			# pop BY
+			if action.pop(0).upper()!='BY': raise Exception('ERROR: Invalid syntax.') 
+			while action[0].upper() not in key_words:
+				groupBy_clause.append(action.pop(0).strip(', '))
+				if not action:
+					break
+			if groupBy_clause[0].upper()=='HAVING': raise Exception('ERROR: Invalid syntax.')
+
+			groupBy_expression=parse_groupBy(groupBy_clause, attrs_dict)
+	print('GROUP BY CLAUSE: ', groupBy_expression)
+
+	orderBy_clause=[]
+	orderBy_expression=dict()
+	if action:
+		if action[0].upper()=='ORDER':
+			action.pop(0)	# Pop order
+			if action.pop(0).upper()!='BY':
+				raise Exception('ERROR: Invalid syntax')
+			while action[0].upper() not in key_words:
+				orderBy_clause.append(action.pop(0).lower().strip(', '))
+				if not action:
+					break
+			orderBy_expression=parse_orderBy(orderBy_clause)
+	print('ORDER BY CLAUSE: ', orderBy_expression)
+	if action!=[]:
+		raise Exception('ERROR: Invalid syntax.')
+	print(action)
+	return {
+        'mainact': 'select',
+        'attrs': attrs_dict,    # dict->{attr: aggregate function, } such as {id: MAX, }
+        'tables': select_tables,    # list->[table_names]
+        'where': where_expression,  # list->[{attr: , value: , symbol: }, op, ] Poland expression
+        # dict->{group_by: [attrs], conditions: [Poland expression like where_clause]}
+        'groupby': groupBy_expression,  
+        'orderby': orderBy_expression   # dict->{order_by: [attrs], order: DESC/ASC/NO_ACTION}
     }
+    # return{
+    #     'mainact' : 'select',
+    #     'content' : action[1:]
+    # }
+
+def reorder_where_clause(where_clause):
+	conditions=[]
+	temp=[]
+	op=[]
+	for i in range(len(where_clause)):		
+		condition=dict()
+		if (where_clause[i].upper() in ['OR', 'AND', '(', ')'] and where_clause[i-2].upper()!='BETWEEN') or i==len(where_clause)-1:
+			if i==len(where_clause)-1:
+				temp.append(where_clause[i])
+			else:
+				op.append(where_clause[i].upper())
+				if where_clause[i+1].upper() in ['OR', 'AND', '(', ')']:
+					continue				
+
+			if temp:
+				temp=' '.join(temp)
+				if '<=' in temp:
+					tmp=temp.split('<=')
+					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '<='}
+				elif '>=' in temp:
+					tmp=temp.split('>=')
+					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '>='}
+				elif '<>' in temp:
+					tmp=temp.split('<>')
+					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '<>'}
+				elif '=' in temp:
+					tmp=temp.split('=')
+					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '='}
+				elif '<' in temp:
+					tmp=temp.split('<')
+					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '<'}
+				elif '>' in temp:
+					tmp=temp.split('>')
+					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '>'}
+				elif ' LIKE ' in temp.upper():
+					tmp=temp.split('LIKE')
+					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': 'LIKE'}
+				elif 'BETWEEN' in temp.upper():
+					tmp=temp.split(' ')
+					tmp_attr=tmp.pop(0).lower() #Pop attr
+					if tmp.pop(0).upper()!='BETWEEN': raise Exception('ERROR: Invalid Where Clause.')   #Pop Between
+					
+					try:
+						if float(tmp[0])>float(tmp[2]):
+							raise Exception('ERROR: Invalid where clause')
+					except: raise Exception('ERROR: Invalid where clause')
+
+					# v1
+					conditions.append({
+						'attr': tmp_attr,
+						'value': tmp.pop(0),
+						'symbol': '>='
+					})
+
+					if tmp.pop(0).upper()!='AND': raise Exception('ERROR: Invalid Where Clause.')   # Pop AND
+					conditions.append('AND')
+					# v2
+					conditions.append({
+						'attr': tmp_attr,
+						'value': tmp.pop(0),
+						'symbol': '<='
+					})
+					temp=[]
+					if op:
+						while op:
+							conditions.append(op.pop(0))
+					continue
+				elif ' IN ' in temp.upper():
+					tmp=temp.split(' ')
+					tmp_attr=tmp.pop(0).lower()    # Pop attr
+					if tmp.pop(0).upper()!='IN': raise Exception('ERROR: Invalid Where Clause.')  # Pop IN
+					tmp=','.join(tmp).strip('() ').split(',')
+					count=0
+					for val in tmp:
+						conditions.append({
+							'attr': tmp_attr,
+							'value': val.strip(', '),
+							'symbol': '='
+						})
+						count+=1
+						if count!=len(tmp):
+							conditions.append('OR')
+					temp=[]
+					if op:
+						while op:
+							conditions.append(op.pop(0))
+					continue
+				else: raise Exception('ERROR: Invalid where clause')
+				conditions.append(condition)
+				if op:
+					while op:
+						conditions.append(op.pop(0))
+			# else: raise Exception('ERROR: Invalid where clause')
+			temp=[]
+		else:
+			temp.append(where_clause[i])
+	return conditions
+				
+
+def parse_attrs(attrs):
+	# Input: list, aggragete attrs and normal attrs
+	# Output: dict, key is attr, value is aggragation
+	# ex. {id: max}
+	# print(attrs)
+	key_words=['MAX', 'MIN', 'AVG', 'COUNT', 'SUM']
+
+	parse_attrs=dict()
+	for attr in attrs:
+		if '(' in attr and attr[-1]==')':
+			temp=attr.split('(')
+			# temp 0 is aggragate
+			# temp 1 is attr
+			agg_word=temp[0].strip('() ,').upper()
+			attr_tmp=temp[1].strip('() ,').lower()
+			if agg_word not in key_words: raise Exception('ERROR: Invalid syntax.')
+
+			parse_attrs[attr_tmp]=agg_word
+			
+		elif '(' not in attr and ')' not in attr:
+			parse_attrs[attr]='NORMAL'
+		else: raise Exception('ERROR: Invalid syntax.')
+	return parse_attrs
+
+def parse_groupBy(groupBy_clause, attrs):
+	att=attrs.copy()
+	print('GB ATTRS: ', att)
+
+	# TODO: Check attr and groupBy attr
+	print(groupBy_clause)
+	groupBy=[]
+	having=[]
+	for i in range(len(groupBy_clause)):
+		if groupBy_clause[i].upper()=='HAVING':
+			having=groupBy_clause[i+1:]
+			break
+		groupBy.append(groupBy_clause[i])
+
+	if len(groupBy)==len(attrs):
+		if set(groupBy)!=set(attrs.keys()):
+			raise Exception('ERROR1: Invalid group by clause.')
+		if len(set(attrs.values()))!=1:
+			raise Exception('ERROR 1: Group by attrs cannot have aggregate function')
+		if 'NORMAL' not in list(attrs.values()):
+			raise Exception('ERROR 2: Group by attrs cannot have aggregate function')
+	else:
+		for elem in groupBy:
+			del att[elem]
+		if 'NORMAL' in list(att.values()):
+			raise Exception('ERROR: Invalid group by clause')
+
+
+	conditions=reorder_where_clause(having)
+	expression=parse_conditions(conditions)
+
+	return {
+		'group_by': groupBy,
+		'conditions': expression
+	}
+
+def parse_orderBy(orderBy_clause):
+	# Input: list, order by clause
+	# Output: dict, {order_by: attr, order: desc/asc/no_action}
+	print(orderBy_clause)
+	key_words=['DESC', 'ASC']
+	order_status='NO_ACTION'
+	orderBy=[]
+
+	if orderBy_clause[-1].upper() in key_words:
+		order_status=orderBy_clause[-1].upper().strip()
+		orderBy=orderBy_clause[: len(orderBy_clause)-1]
+	else:
+		orderBy=orderBy_clause
+
+	return {
+		'order_by': orderBy,
+		'order': order_status
+	}
+
+def parse_conditions(con_ls):
+	# Poland expression
+	# op=['OR', 'AND']
+	stack=[]
+	ops=[]
+	for item in con_ls:
+		if str(item).upper() in ['OR', 'AND']:
+			while len(ops)>=0:
+				if len(ops)==0:
+					ops.append(item)
+					break
+				op=ops.pop()
+				if op=='(':
+					ops.append(op)
+					ops.append(item)
+					break
+				else:
+					stack.append(op)
+		elif item=='(':
+			ops.append(item)
+		elif item==')':
+			while len(ops)>=0:
+				op=ops.pop()
+				if op=='(':
+					break
+				else:
+					stack.append(op)
+		else:
+			stack.append(item)
+
+	while len(ops)>0:
+		stack.append(ops.pop())
+	return stack
 
 def save(action):
     return{
