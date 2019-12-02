@@ -4,6 +4,7 @@ import shutil
 from ZibiDB.core.table import Table
 import pickle
 import sys
+import pandas as pd
 
 class Database():
     def __init__(self, name):
@@ -76,5 +77,14 @@ class Database():
             raise Exception("Table %s doesn't exist" % name)
         del self.tables[name]
         print ('Table %s is dropped' % name)
+
+    def join_table(self, table1, table2, attr):
+        df1 = pd.DataFrame(table1.data)
+        df2 = pd.DataFrame(table2.data)
+        info = {'name': '', 'attrs': [], 'primary': '', 'foreign': []}
+        df = pd.merge(df1, df2, on=attr)
+        attrs = df.columns.tolist()
+        table = Table(attrs, info)
+        return table
 
     

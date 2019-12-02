@@ -10,6 +10,7 @@ class Table:
     def __init__(self, attrls, info):
         self.data = {}
         self.datalist = []
+        self.df = pd.DataFrame()
         self.name = info['name']
         self.attrls = attrls
         self.attrs = {} #{name: attributeobj}
@@ -118,7 +119,7 @@ class Table:
         if gb:
             temp = self.group_by(condition[2], condition[3], attr, df)
         else:
-            temp = df[attr]
+            temp = self.df[attr]
 
         if situation == 0:  # no where
             if attr == '*':
@@ -128,37 +129,37 @@ class Table:
 
         if situation == 1:
             if attr == '*':
-                return temp.loc[temp[condition[0]] == condition[1]]
+                return temp.loc[temp[condition[0]] == condition[1], attr]
             return temp.loc[temp[condition[0]] == condition[1], attr]
         if situation == 2:
             if attr == '*':
-                return temp.loc[temp[condition[0]] > condition[1]]
-            return temp.loc[temp[condition[0]] > condition[1]]
+                return temp.loc[temp[condition[0]] > condition[1], attr]
+            return temp.loc[temp[condition[0]] > condition[1], attr]
         if situation == 3:
             if attr == '*':
-                return temp.loc[temp[condition[0]] >= condition[1]]
-            return temp.loc[temp[condition[0]] >= condition[1]]
+                return temp.loc[temp[condition[0]] >= condition[1], attr]
+            return temp.loc[temp[condition[0]] >= condition[1], attr]
         if situation == 4:
             if attr == '*':
-                return temp.loc[temp[condition[0]] < condition[1]]
-            return temp.loc[temp[condition[0]] < condition[1]]
+                return temp.loc[temp[condition[0]] < condition[1], attr]
+            return temp.loc[temp[condition[0]] < condition[1], attr]
         if situation == 5:
             if attr == '*':
-                return temp.loc[temp[condition[0]] <= condition[1]]
-            return temp.loc[temp[condition[0]] <= condition[1]]
+                return temp.loc[temp[condition[0]] <= condition[1], attr]
+            return temp.loc[temp[condition[0]] <= condition[1], attr]
         if situation == 8:
             if attr == '*':
-                return temp.loc[temp[condition[0]] != condition[1]]
-            return temp.loc[temp[condition[0]] != condition[1]]
+                return temp.loc[temp[condition[0]] != condition[1], attr]
+            return temp.loc[temp[condition[0]] != condition[1], attr]
 
         if situation == 6:
             if attr == '*':
-                return temp.loc[temp[condition[0]].str.contains(condition[1])]
-            return temp.loc[temp[condition[0]].str.contains(condition[1])]
+                return temp.loc[temp[condition[0]].str.contains(condition[1]), attr]
+            return temp.loc[temp[condition[0]].str.contains(condition[1]), attr]
         if situation == 7:
             if attr == '*':
-                return temp.loc[not temp[condition[0]].str.contains(condition[1])]
-            return temp.loc[~temp[condition[0]].str.contains(condition[1])]
+                return temp.loc[not temp[condition[0]].str.contains(condition[1]), attr]
+            return temp.loc[~temp[condition[0]].str.contains(condition[1]), attr]
 
 
     def group_by(self, agg, attr_gr, attr, df):
