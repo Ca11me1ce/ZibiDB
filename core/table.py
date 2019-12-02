@@ -132,11 +132,19 @@ class Table:
             if attr == '*':
                 return temp.loc[temp[condition[0]] <= condition[1]]
             return temp.loc[temp[condition[0]] <= condition[1]]
+        if situation == 8:
+            if attr == '*':
+                return temp.loc[temp[condition[0]] != condition[1]]
+            return temp.loc[temp[condition[0]] != condition[1]]
 
         if situation == 6:
             if attr == '*':
                 return temp.loc[temp[condition[0]].str.contains(condition[1])]
             return temp.loc[temp[condition[0]].str.contains(condition[1])]
+        if situation == 7:
+            if attr == '*':
+                return temp.loc[not temp[condition[0]].str.contains(condition[1])]
+            return temp.loc[~temp[condition[0]].str.contains(condition[1])]
 
 
     def group_by(self, situation, attr_gr, attr, df):
