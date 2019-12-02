@@ -2,7 +2,7 @@ import pandas as pd
 import json
 import os
 import numpy as np
-from ZibiDB.core.attribute import Attribute
+from core.attribute import Attribute
 
 class Table:
     # info = {}
@@ -95,12 +95,26 @@ class Table:
     def deserialize(self):
         pass
     
-    def search(self, attr, situation, condition, gb):
+    def search(self, attr, sym, condition, gb):
         # attr: [] or *
         # situation: number means different conditions
         # gb: true/false have group by
         # condition: [], base on situation
         df = pd.DataFrame(self.datalist, columns = self.attrls)# I think we need index here, but I am not familiar with this part wich index will be better? BTW, code below need to be modified.
+        symbols = {
+            '=': 1,
+            '>': 2,
+            '>=': 3,
+            '<': 4,
+            '<=': 5,
+            'LIKE': 6,
+            'NOT LIKE': 7,
+            '<>': 8
+        }
+        if len(sym) == 0:
+            situation = 0
+        else:
+            situation = symbols[sym]
         if gb:
             temp = self.group_by(condition[2], condition[3], attr, df)
         else:
@@ -147,7 +161,7 @@ class Table:
             return temp.loc[~temp[condition[0]].str.contains(condition[1])]
 
 
-    def group_by(self, situation, attr_gr, attr, df):
+    def group_by(self, agg, attr_gr, attr, df):
         """
         :param situation: calculation of group by
         :param attr_gr: the attrs for group
@@ -155,6 +169,15 @@ class Table:
         :param df: dataframe for group by
         :return: a dataframe
         """
+        agg_funcs = {
+            'MAX': 0,
+            'MIN': 1,
+            'AVG': 2,
+            'SUM': 3,
+            'COUNT': 4
+        }
+        situation = agg_funcs[agg]
+
         if attr == '*':
             raise Exception('ERROR: Invalid search.')
         gb = df.groupby(attr_gr)
@@ -182,8 +205,8 @@ class Table:
 
 if __name__ == '__main__':
     data = []
-    for i in range(1001):
-        if i > 500:
+    for i in range(1000001):
+        if i > 500000:
             data.append([i,2])
         else:
             data.append([i,1])
@@ -192,5 +215,5 @@ if __name__ == '__main__':
     info = {'name': 'test', 'attrs': [attr1, attr2], 'primary': '', 'foreign': []}
     table = Table(['id', 'num'], info)
     table.datalist = data
-    res = table.search(['id'], 1, ['id', 500, 0, ['num']], True)
+    res = table.search(['id'], '=', ['id', 500000, 'MAX', ['num']], True)
     print(res)
