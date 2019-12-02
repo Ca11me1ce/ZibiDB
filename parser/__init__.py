@@ -531,7 +531,6 @@ def reorder_where_clause(where_clause):
 		else:
 			temp.append(where_clause[i])
 	return conditions
-				
 
 def parse_attrs(attrs):
 	# Input: list, aggragete attrs and normal attrs
@@ -673,6 +672,64 @@ def show(action):
     else:
         raise Exception('Syntax error! Recommend : show databases/tables ')
 
+def update(action):
+    
+    if action[0].upper()=='UPDATE':
+        action.pop()
+    table_name=action.pop()
+    if action.pop().upper()!='SET': raise Exception('ERROR 1: Not SET syntax.')
+
+    set_dict=[]
+    while action[0].upper()!='WHERE':
+        condition=action.pop().strip(', ')
+        if '=' not in condition:
+            raise Exception('ERROR 2: Invalid syntax.')
+        tmp=condition.split('=')
+        set_dict.append({
+            'attr': tmp[0].lower(),
+            'value': tmp[1],
+        })
+        if action==[]:
+            break
+        
+    where_expression=[]
+    if action:
+        if action[0].upper()!='WHERE':
+            raise Exception('ERROR 3: Invalid syntax.')
+        action.pop()    #Pop where
+        conditions=reorder_where_clause(action)
+
+        # where clause poland expression
+        where_expression=parse_conditions(conditions)	# Parse where clause
+    return {
+        'table': table_name,    # str->table name
+        'set': set_dict,    # list->[{attr:, value:}]
+        'where': where_expression,  #   list-> like where clause
+    }
+
+def delete(action):
+    if action[0].upper()=='DELETE':
+        action.pop()
+    if action.pop(0).upper()!='FROM':
+        raise Exception('ERROR 1: Invalid syntax.')
+    table_name=action.pop(0).lower()
+
+    where_expression=[]
+    if action:
+        if action.pop(0).upper()!='WHERE':
+            raise Exception('ERROR 2: Invalid syntax')
+        conditions=reorder_where_clause(action)
+
+        # where clause poland expression
+        where_expression=parse_conditions(conditions)	# Parse where clause
+    return{
+        'table': table_name,
+        'where': where_expression,
+    }
+
+
+
+
 main_action = {
     'EXIT' : exit,
     'CREATE' : create,
@@ -682,6 +739,8 @@ main_action = {
     'SAVE' : save,
     'SHOW' : show,
     'USE' : use,
+    'UPDATE': update,
+    'DELETE': delete,
 }
 
 def parse(commandline):

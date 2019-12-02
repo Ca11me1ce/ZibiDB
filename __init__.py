@@ -158,8 +158,14 @@ class Engine:
             return 'continue', db
 
         if action['mainact'] == 'select':
-            self.selectQuery(db, action['content'])
+            # self.selectQuery(db, action['content'])
             return 'continue', db
+
+        if action['mainact'] == 'delete':
+            pass
+
+        if action['mainact'] == 'update':
+            pass
 
         if action['mainact'] == 'save':
             if db:

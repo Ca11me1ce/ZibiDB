@@ -51,9 +51,9 @@ class Table:
                 # If unique, call self uniquecheck()
                 if value in self.uniqueattr[attname].keys():
                     raise Exception('ERROR: Unique attribute values are in conflict' + data)
-                    self.attrs[attname].typecheck(value)
-                    # If it is not unique, raise error in the function
-                    # Else, continue
+                self.attrs[attname].typecheck(value)
+                # If it is not unique, raise error in the function
+                # Else, continue
             
             # Get primary-key values
             for _ in range(len(self.primary)):
