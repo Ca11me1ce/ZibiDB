@@ -2,7 +2,7 @@ import pandas as pd
 import json
 import os
 import numpy as np
-from core.attribute import Attribute
+from ZibiDB.core.attribute import Attribute
 
 class Table:
     # info = {}

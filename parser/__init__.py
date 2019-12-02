@@ -371,7 +371,6 @@ def select(action):
 	print('ORDER BY CLAUSE: ', orderBy_expression)
 	if action!=[]:
 		raise Exception('ERROR: Invalid syntax.')
-	print(action)
 	return {
         'mainact': 'select',
         'attrs': attrs_dict,    # dict->{attr: aggregate function, } such as {id: MAX, }
@@ -381,10 +380,6 @@ def select(action):
         'groupby': groupBy_expression,  
         'orderby': orderBy_expression   # dict->{order_by: [attrs], order: DESC/ASC/NO_ACTION}
     }
-    # return{
-    #     'mainact' : 'select',
-    #     'content' : action[1:]
-    # }
 
 def reorder_where_clause(where_clause):
 	conditions=[]
@@ -423,6 +418,9 @@ def reorder_where_clause(where_clause):
 				elif ' LIKE ' in temp.upper():
 					tmp=temp.split('LIKE')
 					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': 'LIKE'}
+				elif ' NOT LIKE ' in temp.upper():
+					tmp=temp.split('LIKE')
+					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': 'NOT LIKE'}
 				elif 'BETWEEN' in temp.upper():
 					tmp=temp.split(' ')
 					tmp_attr=tmp.pop(0).lower() #Pop attr
@@ -453,6 +451,36 @@ def reorder_where_clause(where_clause):
 						while op:
 							conditions.append(op.pop(0))
 					continue
+				elif 'BETWEEN' in temp.upper():
+					tmp=temp.split(' ')
+					tmp_attr=tmp.pop(0).lower() #Pop attr
+					if tmp.pop(0).upper()!='BETWEEN': raise Exception('ERROR: Invalid Where Clause.')   #Pop Between
+					
+					try:
+						if float(tmp[0])>float(tmp[2]):
+							raise Exception('ERROR: Invalid where clause')
+					except: raise Exception('ERROR: Invalid where clause')
+
+					# v1
+					conditions.append({
+						'attr': tmp_attr,
+						'value': tmp.pop(0),
+						'symbol': '<='
+					})
+
+					if tmp.pop(0).upper()!='AND': raise Exception('ERROR: Invalid Where Clause.')   # Pop AND
+					conditions.append('AND')
+					# v2
+					conditions.append({
+						'attr': tmp_attr,
+						'value': tmp.pop(0),
+						'symbol': '>='
+					})
+					temp=[]
+					if op:
+						while op:
+							conditions.append(op.pop(0))
+					continue
 				elif ' IN ' in temp.upper():
 					tmp=temp.split(' ')
 					tmp_attr=tmp.pop(0).lower()    # Pop attr
@@ -464,6 +492,26 @@ def reorder_where_clause(where_clause):
 							'attr': tmp_attr,
 							'value': val.strip(', '),
 							'symbol': '='
+						})
+						count+=1
+						if count!=len(tmp):
+							conditions.append('OR')
+					temp=[]
+					if op:
+						while op:
+							conditions.append(op.pop(0))
+					continue
+				elif ' NOT IN ' in temp.upper():
+					tmp=temp.split(' ')
+					tmp_attr=tmp.pop(0).lower()    # Pop attr
+					if tmp.pop(0).upper()!='IN': raise Exception('ERROR: Invalid Where Clause.')  # Pop IN
+					tmp=','.join(tmp).strip('() ').split(',')
+					count=0
+					for val in tmp:
+						conditions.append({
+							'attr': tmp_attr,
+							'value': val.strip(', '),
+							'symbol': '<>'
 						})
 						count+=1
 						if count!=len(tmp):
@@ -511,7 +559,6 @@ def parse_attrs(attrs):
 
 def parse_groupBy(groupBy_clause, attrs):
 	att=attrs.copy()
-	print('GB ATTRS: ', att)
 
 	# TODO: Check attr and groupBy attr
 	print(groupBy_clause)
@@ -525,16 +572,16 @@ def parse_groupBy(groupBy_clause, attrs):
 
 	if len(groupBy)==len(attrs):
 		if set(groupBy)!=set(attrs.keys()):
-			raise Exception('ERROR1: Invalid group by clause.')
+			raise Exception('ERROR 1: Invalid group by clause.')
 		if len(set(attrs.values()))!=1:
-			raise Exception('ERROR 1: Group by attrs cannot have aggregate function')
-		if 'NORMAL' not in list(attrs.values()):
 			raise Exception('ERROR 2: Group by attrs cannot have aggregate function')
+		if 'NORMAL' not in list(attrs.values()):
+			raise Exception('ERROR 3: Group by attrs cannot have aggregate function')
 	else:
 		for elem in groupBy:
 			del att[elem]
 		if 'NORMAL' in list(att.values()):
-			raise Exception('ERROR: Invalid group by clause')
+			raise Exception('ERROR 4: Invalid group by clause')
 
 
 	conditions=reorder_where_clause(having)
