@@ -120,6 +120,7 @@ class Engine:
             if item['tag']==1:
                 join_con.append(item)
                 where.remove(item)
+        print(where)
 
         tbl = tables[::]
 
@@ -207,7 +208,7 @@ class Engine:
 
         })
 
-
+        print('bk1')
         if tc:
 
             to = {}

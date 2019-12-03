@@ -460,9 +460,26 @@ def reorder_where_clause(where_clause):
 					condition={'attr': tmp[0].lower(), 'value': tmp[1].strip("'"), 'symbol': '<>', 'tag': tag}
 				elif '=' in temp:
 					tmp=temp.split('=')
-					if tmp[1][0]!="'" and tmp[1][len(tmp[1])-1]!="'":
-						tag=1
-					condition={'attr': tmp[0].lower(), 'value': tmp[1].strip("'"), 'symbol': '=', 'tag': tag}
+					print('value: ', type(tmp[1]))
+					try:
+						value=int(tmp[1])
+						tag=0
+					except:
+						value=tmp[1]
+						if tmp[1][0]!="'" and tmp[1][len(tmp[1])-1]!="'":
+						    value=value.strip("' ")
+						    tag=1
+						else:
+						    tag=0
+
+					# try:
+					# 	value=float(tmp[1])
+					# 	tag=0
+					# except:
+					# 	value=tmp[1]
+					# 	tag=1
+
+					condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '=', 'tag': tag}
 				elif '<' in temp:
 					tmp=temp.split('<')
 					try:
