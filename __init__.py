@@ -79,10 +79,7 @@ class Engine:
     def insertTable(self, db, table_name, attrs, data):
         print("inserttable")
         db.tables[table_name].insert(attrs, data)
-<<<<<<< HEAD
-=======
         print (db.tables[table_name].datalist)
->>>>>>> 333cbbcf341e6100ed8af42d17b330f135257362
         return db
         
     def selectQuery(self, db, attrs, tables, where):
@@ -231,12 +228,8 @@ class Engine:
         elif len(tables) == 1:
             table = db.tables[tables[0]]
 
-<<<<<<< HEAD
-        if len(vc):
-=======
 
         if vc:
->>>>>>> 333cbbcf341e6100ed8af42d17b330f135257362
             cond = {'tag': vc[0]['tag'], 'sym': vc[0]['symbol'], 'condition': [vc[0]['attr'],  vc[0]['value']]}
         else:
             cond = {} 
