@@ -19,32 +19,30 @@ class Attribute:
         -Please manage check order wisely
         -Raise error for invalid information
         """
-        
         if self.notnull:
             if value==None:
                 raise Exception('ERROR: The value must be not null.')
 
-        if self.type=='CHAR':
+        if self.type=='CAHR':
             if type(value)!=type('1'):
-                raise Exception('ERROR 1: Invalid type.')
+                raise Exception('ERROR: Invalid type.')
         elif self.type=='INT':
             if type(value)!=type(1):
-                raise Exception('ERROR 2: Invalid type.')
+                raise Exception('ERROR: Invalid type.')
         elif self.type=='FLOAT':
             if type(value)!=type(1.0):
-                raise Exception('ERROR 3: Invalid type.')
+                raise Exception('ERROR: Invalid type.')
         else:
-            raise Exception('ERROR 4: Invalid type.')
+            raise Exception('ERROR: Invalid type.')
 
         if self.constraincheck(value)==False:
             raise Exception('ERROR: The value do not satisfied to the constrain.')
-     
         return True
         
     def constraincheck(self, value):
         # constrain = [T/F, None/value, T/F, None/value]
         # True: >=, False >
-        if self.type == 'CHAR' or self.constrain == []:
+        if self.type == 'CHAR' or self.constrain is None:
             return True
         return self.con1(value) and self.con2(value)
         

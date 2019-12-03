@@ -233,12 +233,9 @@ def insert(action):
         if action[0].upper()=='VALUES':    # insert table values ()
             # No attrs, only values
             action.pop(0) #Pop VALUE
-            print(action)
             if '(' in action[0]:
                 for value in action:
                     elem=value
-                    value=value.strip('() ,')
-                    # print(value)
                     if '.' in value:
                         try:
                             value=float(value)
@@ -251,7 +248,7 @@ def insert(action):
                             value=int(value)
                         except:
                             raise Exception('ERROR 2: Invalid symtax')
-                    print(value)
+
                     data.append(value)
                     if ')' in elem:
                         return{
@@ -416,7 +413,7 @@ def select(action):
         'mainact': 'select',
         'attrs': attrs_dict,    # dict->{attr: aggregate function, } such as {id: MAX, }
         'tables': select_tables,    # list->[table_names]
-        'where': where_expression,  # list->[{attr: , value: , symbol: }, op, ] Poland expression
+        'where': where_expression,  # list->[{attr: , value: , symbol: , tag: ,}, op, ] Poland expression
         # dict->{group_by: [attrs], conditions: [Poland expression like where_clause]}
         'groupby': groupBy_expression,  
         'orderby': orderBy_expression   # dict->{order_by: [attrs], order: DESC/ASC/NO_ACTION}
@@ -748,13 +745,13 @@ def show(action):
 def update(action):
     
     if action[0].upper()=='UPDATE':
-        action.pop(0)
-    table_name=action.pop(0)
-    if action.pop(0).upper()!='SET': raise Exception('ERROR 1: Not SET syntax.')
+        action.pop()
+    table_name=action.pop()
+    if action.pop().upper()!='SET': raise Exception('ERROR 1: Not SET syntax.')
 
     set_dict=[]
     while action[0].upper()!='WHERE':
-        condition=action.pop(0).strip(', ')
+        condition=action.pop().strip(', ')
         if '=' not in condition:
             raise Exception('ERROR 2: Invalid syntax.')
         tmp=condition.split('=')
@@ -769,7 +766,7 @@ def update(action):
     if action:
         if action[0].upper()!='WHERE':
             raise Exception('ERROR 3: Invalid syntax.')
-        action.pop(0)    #Pop where
+        action.pop()    #Pop where
         conditions=reorder_where_clause(action)
 
         # where clause poland expression
@@ -782,7 +779,7 @@ def update(action):
 
 def delete(action):
     if action[0].upper()=='DELETE':
-        action.pop(0)
+        action.pop()
     if action.pop(0).upper()!='FROM':
         raise Exception('ERROR 1: Invalid syntax.')
     table_name=action.pop(0).lower()
@@ -795,32 +792,28 @@ def delete(action):
 
         # where clause poland expression
         where_expression=parse_conditions(conditions)	# Parse where clause
-    print('PASS: Deleted data')
     return{
-        'mainact': 'delete',
         'table': table_name,
         'where': where_expression,
     }
 
 def create_index(action):
     if action[0].upper()=='CREATE':
-        action.pop(0)
-    if action.pop(0).upper()!='INDEX':
+        action.pop()
+    if action.pop().upper()!='INDEX':
         raise Exception('ERROR 1: Invalid syntax.')
 
-    idex_name=action.pop(0)
+    idex_name=action.pop()
 
-    if action.pop(0).upper()!='ON':
+    if action.pop().upper()!='ON':
         raise Exception('ERROR 2: Invalid syntax.')
-    table_name=action.pop(0)
+    table_name=action.pop()
 
     if '(' not in action[0] or ')' not in action[-1]:
         raise Exception('ERROR 3: Invalid syntax.')
     _str=' '.join(action).strip('() ')
     attrs=_str.split(',')
-    attrs=list(map(str.strip, attrs))
-    print('PASS: Created index')
-   
+    attrs=map(str.strip, attrs)
     return {
         'mainact': 'create',
         'type': 'index',
@@ -831,22 +824,20 @@ def create_index(action):
 
 def drop_index(action):
     if action[0].upper()=='DROP':
-        action.pop(0)
+        action.pop()
 
-    if action.pop(0).upper()!='INDEX':
+    if action.pop().upper()!='INDEX':
         raise Exception('ERROR 1: Invalid syntax.')
-    idex_name=action.pop(0)
+    idex_name=action.pop()
 
-    if action.pop(0).upper()!='ON':
+    if action.pop().upper()!='ON':
         raise Exception('ERROR 2: Invalid syntax.')
 
-    table_name=action.pop(0)
+    table_name=action.pop()
 
     if action:
         raise Exception('ERROR 3: Invalid syntax.')
 
-    print('PASS: Dropped index')
-    
     return {
         'mainact': 'drop',
         'type': 'index',

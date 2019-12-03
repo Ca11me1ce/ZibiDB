@@ -20,6 +20,7 @@ class Table:
         self.uniqueattr = {} # {attribute_name: {attibute_value: primarykey_value}}
         self.index={}   #{attr: idex_name}
         self.BTree={}   #{idex_name: BTree}
+        self.flag = 0
 
         for attr in info['attrs']:
             temp = Attribute(attr)
@@ -31,7 +32,7 @@ class Table:
         if attr not in self.uniqueattr.keys():
             raise Exception('ERROR: The attr is not unique and cannot create index')
         # If unique:
-        if attr not in self.index.keys():
+        if attr not in self.index:
             self.index[attr]=idex_name
         # Get pairs {v1:p1, v2:p2,...}
         nodes=self.uniqueattr[attr]
@@ -45,11 +46,8 @@ class Table:
     def drop_index(self, idex_name):
         # TABLE is a obj
         # index name must in index attrs
-        if idex_name in self.index.values():
-            # del self.index[idex_name]
-            for key, value in self.index.items():
-                if value == idex_name:
-                    del self.index[key]
+        if idex_name in self.index.keys():
+            del self.index[idex_name]
             del self.BTree[idex_name]
         else:
             raise Exception('ERROR: The index does not exist')
@@ -131,7 +129,7 @@ class Table:
             if len(data)!=len(self.attrls):
                 raise Exception('ERROR: Full-attr values is needed')
 
-            dat = data[::]
+            dat = data
             # Get primary-key values
             for _ in range(len(self.primary)):
                 prmkvalue.append(dat.pop(0))
@@ -139,21 +137,21 @@ class Table:
             attvalue=dat
 
             # TODO: typecheck
-            for i in range(len(data)):
+            for i in data:
                 value = data[i]
                 attname = self.attrls[i]
-
                 # typecheck()
                 # If false, raise error in typecheck()
                 # If true, nothing happens and continue
                 # If unique, call self uniquecheck()
                 if attname in self.uniqueattr.keys():
                     if value in self.uniqueattr[attname].keys():
-                        raise Exception('ERROR: Unique attribute values are in conflict!  ' + attname + " : " + str(value))
+                        raise Exception('ERROR: Unique attribute values are in conflict' + data)
                     self.uniqueattr[attname][value] = prmkvalue
-                self.attrs[attname].typecheck(value)
+                #self.attrs[attname].typecheck(value)
                 # If it is not unique, raise error in the function
                 # Else, continue
+
             # Hash data
             self.data[tuple(prmkvalue)]=attvalue
         else:
@@ -174,9 +172,9 @@ class Table:
 
                 if attname in self.uniqueattr.keys():
                     if value in self.uniqueattr[attname].keys():
-                        raise Exception('ERROR: Unique attribute values are in conflict!  ' + attname + " : " + str(value))
+                        raise Exception('ERROR: Unique attribute values are in conflict!  ' + attname + " : " + value)
                     self.uniqueattr[attname][value] = prmkvalue
-                self.attrs[attname].typecheck(value)
+                #self.attrs[attname].typecheck(value)
 
                 attrs_dict[attname] = value
 
@@ -199,36 +197,6 @@ class Table:
     
     def deserialize(self):
         pass
-
-    def delete(self, table_name, where):
-        if where == []:
-            self.data = {}
-            self.datalist = []
-            for a in self.uniqueattr.keys():
-                self.uniqueattr[a] = {}
-            #self.BTree
-        elif len(where) > 1:
-            raise Exception('ERROR: Mutiple where conditions is coming soon')
-        elif len(where) == 1:
-            if where[0]['attr'] not in self.primary:
-                raise Exception('ERROR: You should delete by one of the primary key!')
-            else:
-                if where[0]['symbol']=='=':
-                    value=where[0]['value']
-                    try:
-                        value=int(value)
-                    except:
-                        pass
-                    
-                    del self.data[tuple([value])]
-                    self.df=self.df[self.df[where[0]['attr']]!=value]
-                elif where[0]['symbol']=='<>':
-                    try:
-                        value=int(value)
-                    except:
-                        pass
-                    self.data={self.data[value]}
-                    self.df=self.df[self.df[where[0]['attr']]==value]
     
     def search(self, attr, sym, tag, condition, gb):
         # attr: [] or *
@@ -236,6 +204,8 @@ class Table:
         # gb: true/false have group by
         # condition: [], base on situation
         # df = pd.DataFrame(self.datalist, columns = self.attrls)
+        #if self.flag == 0:
+            #self.df = pd.DataFrame(self.datalist, columns = self.attrls)
         self.df = pd.DataFrame(self.datalist, columns = self.attrls)
         symbols = {
             '=': 1,
@@ -360,11 +330,6 @@ class Table:
             return gb[attr].sum()
         if situation == 4:
             return gb[attr].value_counts()
-
-    def df_and(self, df1, df2, attrs):
-        return pd.merge(df1, df2, on=attrs)
-    def df_or(self, df1, df2):
-        return pd.merge(df1, df2, how='outer')
 
     def table_join(self, table, attr):
         df1 = pd.DataFrame(self.data)
