@@ -78,8 +78,6 @@ class Engine:
     # insert into perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
     def insertTable(self, db, table_name, attrs, data):
         db.tables[table_name].insert(attrs, data)
-        print (db.tables[table_name].data)
-        print (db.tables[table_name].datalist)
         return db
         
     def selectQuery(self, db, attrs, tables, where):
@@ -233,12 +231,7 @@ class Engine:
             table = db.tables[tables[0]]
         print('bk5')
 
-<<<<<<< HEAD
-        if vc:
-            print('bk7')
-=======
         if len(vc):
->>>>>>> b3ca4db530399e4be93897f2db02ea885800cfa8
             cond = {'tag': vc[0]['tag'], 'sym': vc[0]['symbol'], 'condition': [vc[0]['attr'],  vc[0]['value']]}
         else:
             cond = {}            
@@ -282,6 +275,69 @@ class Engine:
             else:
                 inputstr = 'ZibiDB>'
             commandline = input(inputstr)
+            if commandline=='test':
+                _str='create database db;\n'+'create table test (aid int not_null unique, aid2 int unique) primary key (aid);\n'
+
+                for i in range(1001):
+                    _str+='insert into test (aid, aid2) values ('+str(i)+', '+str(i)+');\n'
+
+                _str+='create table test1 (bid int not_null unique, bid2 int unique) primary key (bid);\n'
+
+                j=1001
+                for i in range(1001):
+                    j-=1
+                    _str+='insert into test1 (bid, bid2) values ('+str(i)+', '+str(j)+');\n'
+
+
+                _str+='create table test4 (did int not_null unique, did2 int unique) primary key (did);\n'
+
+                j=10001
+                for i in range(10001):
+                    j-=1
+                    _str+='insert into test4 (did, did2) values ('+str(i)+', '+str(j)+');\n'
+
+                _str+='create table test3 (cid int not_null unique, cid2 int unique) primary key (cid);\n'
+                for i in range(10001):
+                    _str+='insert into test3 (cid, cid2) values ('+str(i)+', '+str(i)+');\n'
+
+                _str+='create table test5 (eid int not_null unique, eid2 int unique) primary key (eid);\n'
+                for i in range(100001):
+                    _str+='insert into test5 (eid, eid2) values ('+str(i)+', '+str(i)+');\n'
+
+                _str+='create table test6 (fid int not_null unique, fid2 int unique) primary key (fid);\n'
+
+                j=100001
+                for i in range(100001):
+                    j-=1
+                    _str+='insert into test6 (fid, fid2) values ('+str(i)+', '+str(j)+');\n'
+
+                # _str+='create table test6 (did int not_null unique, did2 int unique) primary key (did);\n'
+                # j=100001
+                # for i in range(100001):
+                #     j-=1
+                #     _str+='insert into test6 (fid, fid2) values ('+str(i)+', '+str(j)+');\n'
+                
+                _str+='save database db;\n'
+
+                commandlines=_str.split(';\n')
+                for commandline in commandlines:
+                    # print(commandline)
+                    if commandline=='':
+                        continue
+                    commandline=commandline.replace(';', '')
+                    try:
+                        result, db = self.execute(commandline, db)
+                        if result == 'exit':
+                            print ('BYE')
+                            sys.exit(0)
+                            return
+
+                    # print information of exception
+                    except Exception as err:
+                        print (err)
+                continue
+
+
             if commandline=='':
                 continue
             commandline=commandline.replace(';', '')

@@ -34,9 +34,11 @@ class Attribute:
                 raise Exception('ERROR 3: Invalid type.')
         else:
             raise Exception('ERROR 4: Invalid type.')
+        print('bk16')
+        # if self.constraincheck(value)==False:
 
-        if self.constraincheck(value)==False:
-            raise Exception('ERROR 5: The value do not satisfied to the constrain.')
+        #     raise Exception('ERROR 5: The value do not satisfied to the constrain.')
+        print('bk17')
         return True
         
     def constraincheck(self, value):

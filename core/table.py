@@ -176,8 +176,8 @@ class Table:
                     self.uniqueattr[attname][value] = prmkvalue
                 #self.attrs[attname].typecheck(value)
                 self.attrs[attname].typecheck(value)
-                attrs_dict[attname] = value
 
+                attrs_dict[attname] = value
              # Get primary-key values
             for name in self.primary:
                 # Pop primary-key value from the full-attr dict
