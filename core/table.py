@@ -263,67 +263,67 @@ class Table:
 
         if situation == 1:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]] == temp[condition[1]]]
                 return temp.loc[temp[condition[0]] == temp[condition[1]], attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]] == condition[1]]
             return temp.loc[temp[condition[0]] == condition[1], attr]
         if situation == 2:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]] > temp[condition[1]]]
                 return temp.loc[temp[condition[0]] > temp[condition[1]], attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]] > condition[1]]
             return temp.loc[temp[condition[0]] > condition[1], attr]
         if situation == 3:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]] >= temp[condition[1]]]
                 return temp.loc[temp[condition[0]] >= temp[condition[1]], attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]] >= condition[1]]
             return temp.loc[temp[condition[0]] >= condition[1], attr]
         if situation == 4:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]] < temp[condition[1]]]
                 return temp.loc[temp[condition[0]] < temp[condition[1]], attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]] < condition[1]]
             return temp.loc[temp[condition[0]] < condition[1], attr]
         if situation == 5:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]] <= temp[condition[1]]]
                 return temp.loc[temp[condition[0]] <= temp[condition[1]], attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]] <= condition[1]]
             return temp.loc[temp[condition[0]] <= condition[1], attr]
         if situation == 8:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]] != temp[condition[1]]]
                 return temp.loc[temp[condition[0]] != temp[condition[1]], attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]] != condition[1]]
             return temp.loc[temp[condition[0]] != condition[1], attr]
 
         if situation == 6:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]].str.contains(temp[condition[1]])]
                 return temp.loc[temp[condition[0]].str.contains(temp[condition[1]]), attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]].str.contains(condition[1])]
             return temp.loc[temp[condition[0]].str.contains(condition[1]), attr]
         if situation == 7:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[~temp[condition[0]].str.contains(temp[condition[1]])]
                 return temp.loc[~temp[condition[0]].str.contains(temp[condition[1]]), attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[~temp[condition[0]].str.contains(condition[1]), attr]
             return temp.loc[~temp[condition[0]].str.contains(condition[1]), attr]
 

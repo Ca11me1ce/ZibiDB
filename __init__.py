@@ -230,8 +230,8 @@ class Engine:
             table = db.tables[tables[0]]
 
 
-        if vc:
-            cond = {'tag': vc['tag'], 'sym': vc['symbol'], 'condition': [vc['attr'],  vc['value']]}
+        if len(vc):
+            cond = {'tag': vc[0]['tag'], 'sym': vc[0]['symbol'], 'condition': [vc[0]['attr'],  vc[0]['value']]}
         else:
             cond = {}            
 
