@@ -413,7 +413,7 @@ def select(action):
         'mainact': 'select',
         'attrs': attrs_dict,    # dict->{attr: aggregate function, } such as {id: MAX, }
         'tables': select_tables,    # list->[table_names]
-        'where': where_expression,  # list->[{attr: , value: , symbol: , tag: ,}, op, ] Poland expression
+        'where': where_expression,  # list->[{attr: , value: , symbol: , tag:}, op, ] Poland expression
         # dict->{group_by: [attrs], conditions: [Poland expression like where_clause]}
         'groupby': groupBy_expression,  
         'orderby': orderBy_expression   # dict->{order_by: [attrs], order: DESC/ASC/NO_ACTION}
@@ -460,26 +460,9 @@ def reorder_where_clause(where_clause):
 					condition={'attr': tmp[0].lower(), 'value': tmp[1].strip("'"), 'symbol': '<>', 'tag': tag}
 				elif '=' in temp:
 					tmp=temp.split('=')
-					print('value: ', type(tmp[1]))
-					try:
-						value=int(tmp[1])
-						tag=0
-					except:
-						value=tmp[1]
-						if tmp[1][0]!="'" and tmp[1][len(tmp[1])-1]!="'":
-						    value=value.strip("' ")
-						    tag=1
-						else:
-						    tag=0
-
-					# try:
-					# 	value=float(tmp[1])
-					# 	tag=0
-					# except:
-					# 	value=tmp[1]
-					# 	tag=1
-
-					condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '=', 'tag': tag}
+					if tmp[1][0]!="'" and tmp[1][len(tmp[1])-1]!="'":
+						tag=1
+					condition={'attr': tmp[0].lower(), 'value': tmp[1].strip("'"), 'symbol': '=', 'tag': tag}
 				elif '<' in temp:
 					tmp=temp.split('<')
 					try:
@@ -809,24 +792,22 @@ def delete(action):
 
         # where clause poland expression
         where_expression=parse_conditions(conditions)	# Parse where clause
-    print('PASS: Deleted data')
     return{
-        'mainact': 'delete',
         'table': table_name,
         'where': where_expression,
     }
 
 def create_index(action):
     if action[0].upper()=='CREATE':
-        action.pop()
-    if action.pop().upper()!='INDEX':
+        action.pop(0)
+    if action.pop(0).upper()!='INDEX':
         raise Exception('ERROR 1: Invalid syntax.')
 
-    idex_name=action.pop()
+    idex_name=action.pop(0)
 
-    if action.pop().upper()!='ON':
+    if action.pop(0).upper()!='ON':
         raise Exception('ERROR 2: Invalid syntax.')
-    table_name=action.pop()
+    table_name=action.pop(0)
 
     if '(' not in action[0] or ')' not in action[-1]:
         raise Exception('ERROR 3: Invalid syntax.')
@@ -843,16 +824,16 @@ def create_index(action):
 
 def drop_index(action):
     if action[0].upper()=='DROP':
-        action.pop()
+        action.pop(0)
 
-    if action.pop().upper()!='INDEX':
+    if action.pop(0).upper()!='INDEX':
         raise Exception('ERROR 1: Invalid syntax.')
-    idex_name=action.pop()
+    idex_name=action.pop(0)
 
-    if action.pop().upper()!='ON':
+    if action.pop(0).upper()!='ON':
         raise Exception('ERROR 2: Invalid syntax.')
 
-    table_name=action.pop()
+    table_name=action.pop(0)
 
     if action:
         raise Exception('ERROR 3: Invalid syntax.')
