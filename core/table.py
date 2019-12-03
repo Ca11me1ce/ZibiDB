@@ -2,7 +2,8 @@ import pandas as pd
 import json
 import os
 import numpy as np
-from core.attribute import Attribute
+from ZibiDB.core.attribute import Attribute
+from BTrees.OOBTree import OOBTree
 
 class Table:
     # info = {}
@@ -16,12 +17,97 @@ class Table:
         self.primary = info['primary']
         self.foreign = info['foreign']
         self.uniqueattr = {} # {attribute_name: {attibute_value: primarykey_value}}
+        self.index={}   #{attr: idex_name}
+        self.BTree={}   #{idex_name: BTree}
 
         for attr in info['attrs']:
             temp = Attribute(attr)
             self.attrs[attr['name']] = temp
             if temp.unique:
                 self.uniqueattr[attr['name']] = {}
+
+    def add_index(self, attr, idex_name):
+        if attr not in self.uniqueattr.keys():
+            raise Exception('ERROR: The attr is not unique and cannot create index')
+        # If unique:
+        if attr not in self.index:
+            self.index[attr]=idex_name
+        # Get pairs {v1:p1, v2:p2,...}
+        nodes=self.uniqueattr[attr]
+
+        # Create a b tree
+        t=OOBTree()
+        t.update(nodes)
+        self.BTree[idex_name]=t
+        return t
+    
+    def drop_index(self, idex_name):
+        # TABLE is a obj
+        # index name must in index attrs
+        if idex_name in self.index.keys():
+            del self.index[idex_name]
+            del self.BTree[idex_name]
+        else:
+            raise Exception('ERROR: The index does not exist')
+    def index_search(self, attrs, condition):
+        '''
+        attrs: [attr1, attr2, ...]
+        condition:{attr: , value:, symbol, }
+        '''
+        attr=condition['attr']
+        value=condition['value']
+        symbol=condition['symbol']
+        idex_name=self.index[attr]
+        BTree=self.BTree[idex_name]
+
+        min_key=BTree.minKey()
+        max_key=BTree.max_key()
+
+        if symbol=='=':
+            pks=[BTree[value]]
+            content=[]
+            for pk in pks:
+                content.append(self.data[pk])
+        
+        elif symbol=='<':
+            pks=list(BTree.values(min=min_key, max=value, excludemin=False, excludemax=True)) #[pk1, pk2,...]
+            content=[]
+            for pk in pks:
+                content.append(self.data[pk])
+
+        elif symbol=='>':
+            pks=list(BTree.values(min=value, max=max_key, excludemin=True, excludemax=False)) #[pk1, pk2,...]
+            content=[]
+            for pk in pks:
+                content.append(self.data[pk])
+
+        elif symbol=='<=':
+            pks=list(BTree.values(min=min_key, max=value, excludemin=False, excludemax=False)) #[pk1, pk2,...]
+            content=[]
+            for pk in pks:
+                content.append(self.data[pk])
+
+        elif symbol=='>=':
+            pks=list(BTree.values(min=value, max=max_key, excludemin=True, excludemax=False)) #[pk1, pk2,...]
+            content=[]
+            for pk in pks:
+                content.append(self.data[pk])
+
+        elif symbol=='<>':
+            pk1=list(BTree.values(min=min_key, max=value, excludemin=False, excludemax=True)) #[pk1, pk2,...]
+            pk2=list(BTree.values(min=value, max=max_key, excludemin=True, excludemax=False)) #[pk1, pk2,...]
+            content=[]
+            for pk in pk1:
+                content.append(self.data[pk])    
+            for pk in pk2:
+                content.append(self.data[pk])   
+        att=self.attrls[len(pks):]
+
+        df=pd.DataFrame(content, columns=att)
+        my_df=pd.DataFrame()
+        for i in attrs:
+            my_df[i]=df[i]
+        return my_df
 
     def insert(self, attrs: list, data: list) -> None:
         """

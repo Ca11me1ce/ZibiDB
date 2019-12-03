@@ -11,6 +11,10 @@ def create(action):
             'name' : action[2].lower()
         }
 
+    elif action[1].upper() == 'INDEX':
+        return create_index(action)
+
+
     elif action[1].upper() == 'TABLE':
 
         table_info = action[3:]
@@ -201,6 +205,9 @@ def drop(action):
             'type' : 'database',
             'name' : action[2].lower()
         }
+
+    elif action[1].upper()=='INDEX':
+        return drop_index(action)
 
     elif action[1].upper() == 'TABLE':
         return{
@@ -396,31 +403,57 @@ def reorder_where_clause(where_clause):
 					continue				
 
 			if temp:
+				tag=0
 				temp=' '.join(temp)
 				if '<=' in temp:
+
 					tmp=temp.split('<=')
-					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '<='}
+					try:
+						value=float(tmp[1])
+					except:
+						value=tmp[1]
+						tag=1
+					condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '<=', 'tag': tag}
 				elif '>=' in temp:
 					tmp=temp.split('>=')
-					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '>='}
+					try:
+						value=float(tmp[1])
+					except:
+						value=tmp[1]
+						tag=1
+					condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '>=', 'tag': tag}
 				elif '<>' in temp:
+					if tmp[1][0]!="'" and tmp[1][len(tmp[1])-1]!="'":
+						tag=1
 					tmp=temp.split('<>')
-					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '<>'}
+					condition={'attr': tmp[0].lower(), 'value': tmp[1].strip("'"), 'symbol': '<>', 'tag': tag}
 				elif '=' in temp:
 					tmp=temp.split('=')
-					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '='}
+					if tmp[1][0]!="'" and tmp[1][len(tmp[1])-1]!="'":
+						tag=1
+					condition={'attr': tmp[0].lower(), 'value': tmp[1].strip("'"), 'symbol': '=', 'tag': tag}
 				elif '<' in temp:
 					tmp=temp.split('<')
-					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '<'}
+					try:
+						value=float(tmp[1])
+					except:
+						value=tmp[1]
+						tag=1
+					condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '<', 'tag': tag}
 				elif '>' in temp:
 					tmp=temp.split('>')
-					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': '>'}
+					try:
+						value=float(tmp[1])
+					except:
+						value=tmp[1]
+						tag=1
+					condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '>', 'tag': tag}
 				elif ' LIKE ' in temp.upper():
 					tmp=temp.split('LIKE')
-					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': 'LIKE'}
+					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': 'LIKE', 'tag': 0 }
 				elif ' NOT LIKE ' in temp.upper():
 					tmp=temp.split('LIKE')
-					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': 'NOT LIKE'}
+					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': 'NOT LIKE', 'tag': 0 }
 				elif 'BETWEEN' in temp.upper():
 					tmp=temp.split(' ')
 					tmp_attr=tmp.pop(0).lower() #Pop attr
@@ -435,7 +468,8 @@ def reorder_where_clause(where_clause):
 					conditions.append({
 						'attr': tmp_attr,
 						'value': tmp.pop(0),
-						'symbol': '>='
+						'symbol': '>=',
+                        'tag': 0 
 					})
 
 					if tmp.pop(0).upper()!='AND': raise Exception('ERROR: Invalid Where Clause.')   # Pop AND
@@ -444,7 +478,8 @@ def reorder_where_clause(where_clause):
 					conditions.append({
 						'attr': tmp_attr,
 						'value': tmp.pop(0),
-						'symbol': '<='
+						'symbol': '<=',
+                        'tag': 0 
 					})
 					temp=[]
 					if op:
@@ -465,7 +500,8 @@ def reorder_where_clause(where_clause):
 					conditions.append({
 						'attr': tmp_attr,
 						'value': tmp.pop(0),
-						'symbol': '<='
+						'symbol': '<=',
+                        'tag': 0 
 					})
 
 					if tmp.pop(0).upper()!='AND': raise Exception('ERROR: Invalid Where Clause.')   # Pop AND
@@ -474,7 +510,8 @@ def reorder_where_clause(where_clause):
 					conditions.append({
 						'attr': tmp_attr,
 						'value': tmp.pop(0),
-						'symbol': '>='
+						'symbol': '>=',
+                        'tag': 0 
 					})
 					temp=[]
 					if op:
@@ -491,7 +528,8 @@ def reorder_where_clause(where_clause):
 						conditions.append({
 							'attr': tmp_attr,
 							'value': val.strip(', '),
-							'symbol': '='
+							'symbol': '=',
+                            'tag': 0 
 						})
 						count+=1
 						if count!=len(tmp):
@@ -511,7 +549,8 @@ def reorder_where_clause(where_clause):
 						conditions.append({
 							'attr': tmp_attr,
 							'value': val.strip(', '),
-							'symbol': '<>'
+							'symbol': '<>',
+                            'tag': 0 
 						})
 						count+=1
 						if count!=len(tmp):
@@ -727,6 +766,53 @@ def delete(action):
         'where': where_expression,
     }
 
+def create_index(action):
+    if action[0].upper()=='CREATE':
+        action.pop()
+    if action.pop().upper()!='INDEX':
+        raise Exception('ERROR 1: Invalid syntax.')
+
+    idex_name=action.pop()
+
+    if action.pop().upper()!='ON':
+        raise Exception('ERROR 2: Invalid syntax.')
+    table_name=action.pop()
+
+    if '(' not in action[0] or ')' not in action[-1]:
+        raise Exception('ERROR 3: Invalid syntax.')
+    _str=' '.join(action).strip('() ')
+    attrs=_str.split(',')
+    attrs=map(str.strip, attrs)
+    return {
+        'mainact': 'create',
+        'type': 'index',
+        'index_name': idex_name,
+        'table': table_name,
+        'attrs': attrs,
+    }
+
+def drop_index(action):
+    if action[0].upper()=='DROP':
+        action.pop()
+
+    if action.pop().upper()!='INDEX':
+        raise Exception('ERROR 1: Invalid syntax.')
+    idex_name=action.pop()
+
+    if action.pop().upper()!='ON':
+        raise Exception('ERROR 2: Invalid syntax.')
+
+    table_name=action.pop()
+
+    if action:
+        raise Exception('ERROR 3: Invalid syntax.')
+
+    return {
+        'mainact': 'drop',
+        'type': 'index',
+        'index_name': idex_name,
+        'table': table_name,
+    }
 
 
 

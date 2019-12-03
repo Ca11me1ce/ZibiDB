@@ -83,9 +83,9 @@ class Engine:
         
     def selectQuery(self, db, info):
         # Return select table
-        t=db.select(info)
-        print(t)
-        return t
+        db.select(info)   # Parse
+        print(db)
+        return db
         
     # lauch function: receieve a command and send to execution function.
     def start(self):
@@ -158,6 +158,7 @@ class Engine:
             return 'continue', db
 
         if action['mainact'] == 'select':
+            self.selectQuery(db, action['data'])
             # self.selectQuery(db, action['content'])
             return 'continue', db
 
