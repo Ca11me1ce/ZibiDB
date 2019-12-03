@@ -233,8 +233,12 @@ class Engine:
             table = db.tables[tables[0]]
         print('bk5')
 
+<<<<<<< HEAD
         if vc:
             print('bk7')
+=======
+        if len(vc):
+>>>>>>> b3ca4db530399e4be93897f2db02ea885800cfa8
             cond = {'tag': vc[0]['tag'], 'sym': vc[0]['symbol'], 'condition': [vc[0]['attr'],  vc[0]['value']]}
         else:
             cond = {}            
