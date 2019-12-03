@@ -7,6 +7,7 @@ import sys
 import pickle
 from ZibiDB.parser import parse
 from ZibiDB.core.database import Database
+from ZibiDB.core.table import Table
 
 # All attributes, table names, and database names will be stored in lower case
 
@@ -81,11 +82,38 @@ class Engine:
         print (db.tables[table_name].datalist)
         return db
         
-    def selectQuery(self, db, info):
-        # Return select table
-        t=db.select(info)
-        print(t)
-        return t
+    def selectQuery(self, db, attrs, tables, where):
+        # Return lect table 
+        ats = list(attrs.keys())
+        table = db.tables[tables[0]]
+        if where:
+            cond = {'tag': False, 'sym': where[0]['symbol'], 'condition': [where[0]['attr'],  where[0]['value']]}
+        else:
+            cond = {}
+        print ("cond")
+        print (cond)
+        restable = self.subselect(table, ats, cond)
+        return restable
+
+    def subselect(self, table, attrs, where):
+        sym = ''
+        tag = False
+        gb = False
+        condition = []
+        if where:
+            sym = where['sym']
+            tag = where['tag']
+            condition = where['condition']
+        df = table.search(attrs, sym, tag, condition, gb)
+        return df
+
+    def join(self, table1, table2, attr):
+        df = database('jointempdb').join_table(table1, table2, attr)
+        return df
+
+    def addor(self, table1, table2):
+        return 
+
         
     # lauch function: receieve a command and send to execution function.
     def start(self):
@@ -158,7 +186,8 @@ class Engine:
             return 'continue', db
 
         if action['mainact'] == 'select':
-            # self.selectQuery(db, action['content'])
+            restable = self.selectQuery(db, action['attrs'], action['tables'], action['where'])
+            print (restable)
             return 'continue', db
 
         if action['mainact'] == 'delete':

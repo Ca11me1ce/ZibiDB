@@ -78,13 +78,9 @@ class Database():
         del self.tables[name]
         print ('Table %s is dropped' % name)
 
-    def join_table(self, table1, table2, attr):
-        df1 = pd.DataFrame(table1.data)
-        df2 = pd.DataFrame(table2.data)
+    def join_table(self, df1, df2, attr):
         info = {'name': '', 'attrs': [], 'primary': '', 'foreign': []}
         df = pd.merge(df1, df2, on=attr)
-        attrs = df.columns.tolist()
-        table = Table(attrs, info)
-        return table
+        return df
 
     

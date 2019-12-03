@@ -101,7 +101,8 @@ class Table:
         # situation: number means different conditions
         # gb: true/false have group by
         # condition: [], base on situation
-        df = pd.DataFrame(self.datalist, columns = self.attrls)# I think we need index here, but I am not familiar with this part wich index will be better? BTW, code below need to be modified.
+        # df = pd.DataFrame(self.datalist, columns = self.attrls)
+        self.df = pd.DataFrame(self.datalist, columns = self.attrls)
         symbols = {
             '=': 1,
             '>': 2,
@@ -112,6 +113,7 @@ class Table:
             'NOT LIKE': 7,
             '<>': 8
         }
+
         if len(sym) == 0:
             situation = 0
         else:
@@ -121,19 +123,36 @@ class Table:
         else:
             temp = self.df
 
+
+        print ("situation")
+        print (situation)
+
         if situation == 0:  # no where
-            if attr == '*':
+            if attr == ['*']:
                 return temp
             else:
                 return temp.loc[:, attr]
 
         if situation == 1:
+            print("condition")
+            print(condition)
+            condition[1] = 1
+            condition[0] = 'id'
+            print("conditionnew")
+            print(condition)
+            print(tag)
+            print(gb)
             if tag:
                 if attr == '*':
                     return temp.loc[temp[condition[0]] == temp[condition[1]]]
                 return temp.loc[temp[condition[0]] == temp[condition[1]], attr]
             if attr == '*':
                 return temp.loc[temp[condition[0]] == condition[1]]
+            print ("ready to return")
+            print(temp)
+            print(condition[0])
+            print(condition[1])
+            print(temp.loc[temp[condition[0]] == condition[1], attr])
             return temp.loc[temp[condition[0]] == condition[1], attr]
         if situation == 2:
             if tag:
@@ -235,7 +254,7 @@ class Table:
         df2 = pd.DataFrame(table.data)
         return pd.merge(df1, df2, on=attr)
 
-
+"""
 if __name__ == '__main__':
     data = []
     for i in range(100):
@@ -250,3 +269,4 @@ if __name__ == '__main__':
     table.df = pd.DataFrame(data, columns=['id', 'num'])
     res = table.search('*', '=', False, ['id', 5], False)
     print(res)
+"""
