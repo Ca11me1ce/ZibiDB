@@ -131,6 +131,13 @@ class Table:
             if len(data)!=len(self.attrls):
                 raise Exception('ERROR: Full-attr values is needed')
 
+            dat = data
+            # Get primary-key values
+            for _ in range(len(self.primary)):
+                prmkvalue.append(dat.pop(0))
+            # the remaining data is attr data
+            attvalue=dat
+
             # TODO: typecheck
             for i in data:
                 value = data[i]
@@ -139,17 +146,13 @@ class Table:
                 # If false, raise error in typecheck()
                 # If true, nothing happens and continue
                 # If unique, call self uniquecheck()
-                if value in self.uniqueattr[attname].keys():
-                    raise Exception('ERROR: Unique attribute values are in conflict' + data)
-                self.attrs[attname].typecheck(value)
+                if attname in self.uniqueattr.keys():
+                    if value in self.uniqueattr[attname].keys():
+                        raise Exception('ERROR: Unique attribute values are in conflict' + data)
+                    self.uniqueattr[attname][value] = prmkvalue
+                #self.attrs[attname].typecheck(value)
                 # If it is not unique, raise error in the function
                 # Else, continue
-            
-            # Get primary-key values
-            for _ in range(len(self.primary)):
-                prmkvalue.append(data.pop(0))
-            # the remaining data is attr data
-            attvalue=data
 
             # Hash data
             self.data[tuple(prmkvalue)]=attvalue
@@ -158,15 +161,28 @@ class Table:
             attrs_dict=dict()
             for name in self.attrls:
                 attrs_dict[name]=None
-            for i in range(len(attrs)):
-                attrs_dict[attrs[i]]=data[i]
 
             # Get primary-key values
             for name in self.primary:
-                if attrs_dict[name]==None:
+                if name not in attrs:
                     raise Exception('ERROR: Primary key cannot be NULL.')
-                prmkvalue.append(attrs_dict[name])
+                prmkvalue.append(data[attrs.index(name)])
 
+            for i in range(len(attrs)):
+                value = data[i]
+                attname = attrs[i]
+
+                if attname in self.uniqueattr.keys():
+                    if value in self.uniqueattr[attname].keys():
+                        raise Exception('ERROR: Unique attribute values are in conflict!  ' + attname + " : " + value)
+                    self.uniqueattr[attname][value] = prmkvalue
+                #self.attrs[attname].typecheck(value)
+                print("compelete")
+
+                attrs_dict[attname] = value
+
+             # Get primary-key values
+            for name in self.primary:
                 # Pop primary-key value from the full-attr dict
                 attrs_dict.pop(name)
             # The remaining data is attr data
@@ -212,10 +228,6 @@ class Table:
         else:
             temp = self.df
 
-
-        print ("situation")
-        print (situation)
-
         if situation == 0:  # no where
             if attr == ['*']:
                 return temp
@@ -223,25 +235,12 @@ class Table:
                 return temp.loc[:, attr]
 
         if situation == 1:
-            print("condition")
-            print(condition)
-            condition[1] = 1
-            condition[0] = 'id'
-            print("conditionnew")
-            print(condition)
-            print(tag)
-            print(gb)
             if tag:
                 if attr == '*':
                     return temp.loc[temp[condition[0]] == temp[condition[1]]]
                 return temp.loc[temp[condition[0]] == temp[condition[1]], attr]
             if attr == '*':
                 return temp.loc[temp[condition[0]] == condition[1]]
-            print ("ready to return")
-            print(temp)
-            print(condition[0])
-            print(condition[1])
-            print(temp.loc[temp[condition[0]] == condition[1], attr])
             return temp.loc[temp[condition[0]] == condition[1], attr]
         if situation == 2:
             if tag:
