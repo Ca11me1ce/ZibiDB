@@ -2,7 +2,7 @@ import pandas as pd
 import json
 import os
 import numpy as np
-from core.attribute import Attribute
+from ZibiDB.core.attribute import Attribute
 
 class Table:
     # info = {}
@@ -96,7 +96,7 @@ class Table:
     def deserialize(self):
         pass
     
-    def search(self, attr, sym, condition, gb):
+    def search(self, attr, sym, tag, condition, gb):
         # attr: [] or *
         # situation: number means different conditions
         # gb: true/false have group by
@@ -119,7 +119,7 @@ class Table:
         if gb:
             temp = self.group_by(condition[2], condition[3], attr, df)
         else:
-            temp = self.df[attr]
+            temp = self.df
 
         if situation == 0:  # no where
             if attr == '*':
@@ -128,37 +128,69 @@ class Table:
                 return temp.loc[:, attr]
 
         if situation == 1:
+            if tag:
+                if attr == '*':
+                    return temp.loc[temp[condition[0]] == temp[condition[1]]]
+                return temp.loc[temp[condition[0]] == temp[condition[1]], attr]
             if attr == '*':
-                return temp.loc[temp[condition[0]] == condition[1], attr]
+                return temp.loc[temp[condition[0]] == condition[1]]
             return temp.loc[temp[condition[0]] == condition[1], attr]
         if situation == 2:
+            if tag:
+                if attr == '*':
+                    return temp.loc[temp[condition[0]] > temp[condition[1]]]
+                return temp.loc[temp[condition[0]] > temp[condition[1]], attr]
             if attr == '*':
-                return temp.loc[temp[condition[0]] > condition[1], attr]
+                return temp.loc[temp[condition[0]] > condition[1]]
             return temp.loc[temp[condition[0]] > condition[1], attr]
         if situation == 3:
+            if tag:
+                if attr == '*':
+                    return temp.loc[temp[condition[0]] >= temp[condition[1]]]
+                return temp.loc[temp[condition[0]] >= temp[condition[1]], attr]
             if attr == '*':
-                return temp.loc[temp[condition[0]] >= condition[1], attr]
+                return temp.loc[temp[condition[0]] >= condition[1]]
             return temp.loc[temp[condition[0]] >= condition[1], attr]
         if situation == 4:
+            if tag:
+                if attr == '*':
+                    return temp.loc[temp[condition[0]] < temp[condition[1]]]
+                return temp.loc[temp[condition[0]] < temp[condition[1]], attr]
             if attr == '*':
-                return temp.loc[temp[condition[0]] < condition[1], attr]
+                return temp.loc[temp[condition[0]] < condition[1]]
             return temp.loc[temp[condition[0]] < condition[1], attr]
         if situation == 5:
+            if tag:
+                if attr == '*':
+                    return temp.loc[temp[condition[0]] <= temp[condition[1]]]
+                return temp.loc[temp[condition[0]] <= temp[condition[1]], attr]
             if attr == '*':
-                return temp.loc[temp[condition[0]] <= condition[1], attr]
+                return temp.loc[temp[condition[0]] <= condition[1]]
             return temp.loc[temp[condition[0]] <= condition[1], attr]
         if situation == 8:
+            if tag:
+                if attr == '*':
+                    return temp.loc[temp[condition[0]] != temp[condition[1]]]
+                return temp.loc[temp[condition[0]] != temp[condition[1]], attr]
             if attr == '*':
-                return temp.loc[temp[condition[0]] != condition[1], attr]
+                return temp.loc[temp[condition[0]] != condition[1]]
             return temp.loc[temp[condition[0]] != condition[1], attr]
 
         if situation == 6:
+            if tag:
+                if attr == '*':
+                    return temp.loc[temp[condition[0]].str.contains(temp[condition[1]])]
+                return temp.loc[temp[condition[0]].str.contains(temp[condition[1]]), attr]
             if attr == '*':
-                return temp.loc[temp[condition[0]].str.contains(condition[1]), attr]
+                return temp.loc[temp[condition[0]].str.contains(condition[1])]
             return temp.loc[temp[condition[0]].str.contains(condition[1]), attr]
         if situation == 7:
+            if tag:
+                if attr == '*':
+                    return temp.loc[~temp[condition[0]].str.contains(temp[condition[1]])]
+                return temp.loc[~temp[condition[0]].str.contains(temp[condition[1]]), attr]
             if attr == '*':
-                return temp.loc[not temp[condition[0]].str.contains(condition[1]), attr]
+                return temp.loc[~temp[condition[0]].str.contains(condition[1]), attr]
             return temp.loc[~temp[condition[0]].str.contains(condition[1]), attr]
 
 
@@ -206,8 +238,8 @@ class Table:
 
 if __name__ == '__main__':
     data = []
-    for i in range(1000001):
-        if i > 500000:
+    for i in range(100):
+        if i > 50:
             data.append([i,2])
         else:
             data.append([i,1])
@@ -215,6 +247,6 @@ if __name__ == '__main__':
     attr2 = {'name': 'num', 'type': 'INT', 'notnull': False, 'unique': False}
     info = {'name': 'test', 'attrs': [attr1, attr2], 'primary': '', 'foreign': []}
     table = Table(['id', 'num'], info)
-    table.datalist = data
-    res = table.search(['id'], '=', ['id', 500000, 'MAX', ['num']], True)
+    table.df = pd.DataFrame(data, columns=['id', 'num'])
+    res = table.search('*', '=', False, ['id', 5], False)
     print(res)
