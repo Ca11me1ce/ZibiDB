@@ -19,6 +19,9 @@ class Attribute:
         -Please manage check order wisely
         -Raise error for invalid information
         """
+        print ("start type check")
+        print(self.type)
+        print(value)
         if self.notnull:
             if value==None:
                 raise Exception('ERROR: The value must be not null.')
@@ -37,7 +40,7 @@ class Attribute:
 
         if self.constraincheck(value)==False:
             raise Exception('ERROR: The value do not satisfied to the constrain.')
-
+        print("compelte typecheck")
         return True
         
     def constraincheck(self, value):
