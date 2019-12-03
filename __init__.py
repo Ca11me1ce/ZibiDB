@@ -117,6 +117,8 @@ class Engine:
         used_attrs=[]
         join_con=[]
         for item in where:
+            if type(item)==type('1'):
+                continue
             if item['tag']==1:
                 join_con.append(item)
                 where.remove(item)
@@ -150,6 +152,7 @@ class Engine:
                     tc.append(condition)
 
         # Append one table and one condition by order
+        print('bk2')
         while join_con:
             for condition in join_con:
                 if condition['attr'] in used_attrs:
@@ -178,7 +181,7 @@ class Engine:
                 else:
                     raise Exception('ERROR: Invalid symtax')
 
-
+        print('bk3')
         while tbl:
             if len(tc) > 3 :
                 tc.append(tbl[0])
@@ -202,7 +205,7 @@ class Engine:
 
         })
 
-        print('bk1')
+        
         if tc:
 
             to = {}
@@ -228,13 +231,14 @@ class Engine:
 
         elif len(tables) == 1:
             table = db.tables[tables[0]]
-
+        print('bk5')
 
         if vc:
-            cond = {'tag': vc['tag'], 'sym': vc['symbol'], 'condition': [vc['attr'],  vc['value']]}
+            print('bk7')
+            cond = {'tag': vc[0]['tag'], 'sym': vc[0]['symbol'], 'condition': [vc[0]['attr'],  vc[0]['value']]}
         else:
             cond = {}            
-
+        print('bk6')
         restable = self.subselect(table, attrs, cond)
         return restable
         
