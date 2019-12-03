@@ -4,18 +4,21 @@ CREATE TABLE Person (id int not_null unique, position char not_null, name char n
 
 CREATE TABLE P (idd int not_null unique, positiond char not_null unique, named char not_null, addressd char not_null) primary key (idd) foreign key (positiond) references work (position_id) on delete no_action on update cascade;
 
+CREATE TABLE PP (idda int not_null unique, positionda char not_null unique, nameda char not_null, addressda char not_null) primary key (idda) foreign key (positionda) references work (position_ida) on delete no_action on update cascade;
+
 insert into person (id, position, name, address) values (1, 'manager', 'Yang', 'home')
 
 insert into perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
 
 insert into perSON (id, position, name, address) values (7, '', 'Yijing', 'nb')
 
-SELECT CustomerName, City FROM Customers where city=arlington
-
-CREATE TABLE Person (id int not_null unique) primary key (id) foreign key (position) references work (position_id) on delete cascade
-
 insert into p values (1, 'manager', 'Yang', 'home')
 
 insert into p (idd, positiond, named, addressd) values (2, 'eater', 'Yijing', 'homeless')
 
 insert into p (idd, positiond, named, addressd) values (7, 'eaters', 'Yijing', 'nb')
+
+insert into pp (idda, positionda, nameda, addressda) values (1, 'lll', 'popop', 'yaocusi')
+
+insert into pp (idda, positionda, nameda, addressda) values (9, 'fangfu', 'shenti', 'beotaokong')
+

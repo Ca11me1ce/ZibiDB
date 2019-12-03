@@ -145,11 +145,8 @@ class Engine:
                     tbl.remove(table_name)
                     used_attrs=used_attrs+db.tables[table_name].attrls
                     if (condition['attr'] not in ta[table_name]) & (ta[table_name]!=['*']):
-                        ta[table_name].append(condition['attr'])
+                        ta[table_name].append(condition['value'])
                     tc.append(condition)
-
-        print ("tc")
-        print(tc)
 
         # Append one table and one condition by order
         while join_con:
@@ -179,10 +176,7 @@ class Engine:
 
                 else:
                     raise Exception('ERROR: Invalid symtax')
-        print ("tc")
-        print(tc)
-        print ("tbl")
-        print(tbl)
+
 
         while tbl:
             if len(tc) > 3 :
