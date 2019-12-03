@@ -82,13 +82,6 @@ class Engine:
         print (db.tables[table_name].datalist)
         return db
         
-<<<<<<< HEAD
-    def selectQuery(self, db, info):
-        # Return select table
-        db.select(info)   # Parse
-        print(db)
-        return db
-=======
     def selectQuery(self, db, attrs, tables, where):
         # Return lect table 
         ats = list(attrs.keys())
@@ -115,13 +108,11 @@ class Engine:
         return df
 
     def join(self, table1, table2, attr):
-        df = database('jointempdb').join_table(table1, table2, attr)
+        df = Database('jointempdb').join_table(table1, table2, attr)
         return df
 
     def addor(self, table1, table2):
         return 
-
->>>>>>> 341f6b4f05e45ed0d11910ea092df18a49889b10
         
     # lauch function: receieve a command and send to execution function.
     def start(self):
@@ -194,13 +185,9 @@ class Engine:
             return 'continue', db
 
         if action['mainact'] == 'select':
-<<<<<<< HEAD
-            self.selectQuery(db, action['data'])
-            # self.selectQuery(db, action['content'])
-=======
+
             restable = self.selectQuery(db, action['attrs'], action['tables'], action['where'])
             print (restable)
->>>>>>> 341f6b4f05e45ed0d11910ea092df18a49889b10
             return 'continue', db
 
         if action['mainact'] == 'delete':

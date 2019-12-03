@@ -3,10 +3,7 @@ import json
 import os
 import numpy as np
 from ZibiDB.core.attribute import Attribute
-<<<<<<< HEAD
 from BTrees.OOBTree import OOBTree
-=======
->>>>>>> 341f6b4f05e45ed0d11910ea092df18a49889b10
 
 class Table:
     # info = {}
