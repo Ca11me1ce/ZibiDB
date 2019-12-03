@@ -215,6 +215,7 @@ def drop(action):
             'type' : 'table',
             'table_name' : action[2].lower()
         }
+        
 def insert(action):
     if action[1].upper() == 'INTO':
         """
