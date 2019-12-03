@@ -31,7 +31,7 @@ class Table:
         if attr not in self.uniqueattr.keys():
             raise Exception('ERROR: The attr is not unique and cannot create index')
         # If unique:
-        if attr not in self.index:
+        if attr not in self.index.keys():
             self.index[attr]=idex_name
         # Get pairs {v1:p1, v2:p2,...}
         nodes=self.uniqueattr[attr]
@@ -45,8 +45,11 @@ class Table:
     def drop_index(self, idex_name):
         # TABLE is a obj
         # index name must in index attrs
-        if idex_name in self.index.keys():
-            del self.index[idex_name]
+        if idex_name in self.index.values():
+            # del self.index[idex_name]
+            for key, value in self.index.items():
+                if value == idex_name:
+                    del self.index[key]
             del self.BTree[idex_name]
         else:
             raise Exception('ERROR: The index does not exist')

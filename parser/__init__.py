@@ -236,6 +236,7 @@ def insert(action):
             if '(' in action[0]:
                 for value in action:
                     elem=value
+                    value=value.strip('() ,')
                     if '.' in value:
                         try:
                             value=float(value)
