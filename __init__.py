@@ -193,6 +193,7 @@ class Engine:
             else:
                 tbl.pop(0)
 
+        
         vc = where
 
         print( {
@@ -247,10 +248,7 @@ class Engine:
             sym = where['sym']
             tag = where['tag']
             condition = where['condition']
-            if condition[0] in table.uniqueattr.keys():
-                ind = {'attr':where['condition'][0],'value':where['condition'][1],'symbol':where['sym']}
-                df = table.index_search(attrs, ind)
-                return df
+            df = table.search(attrs, sym, tag, condition, gb)
         else:
             df = table.search(attrs, sym, tag, condition, gb)
         return df
