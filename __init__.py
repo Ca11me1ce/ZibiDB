@@ -77,6 +77,7 @@ class Engine:
 
     # insert into perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
     def insertTable(self, db, table_name, attrs, data):
+        print("inserttable")
         db.tables[table_name].insert(attrs, data)
         print (db.tables[table_name].datalist)
         return db

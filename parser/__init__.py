@@ -813,7 +813,7 @@ def create_index(action):
         raise Exception('ERROR 3: Invalid syntax.')
     _str=' '.join(action).strip('() ')
     attrs=_str.split(',')
-    attrs=map(str.strip, attrs)
+    attrs=list(map(str.strip, attrs))
     return {
         'mainact': 'create',
         'type': 'index',

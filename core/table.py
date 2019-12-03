@@ -29,13 +29,13 @@ class Table:
                 self.uniqueattr[attr['name']] = {}
 
     def add_index(self, attr, idex_name):
-        if attr not in self.uniqueattr.keys():
+        if attr[0] not in self.uniqueattr.keys():
             raise Exception('ERROR: The attr is not unique and cannot create index')
         # If unique:
-        if attr not in self.index:
-            self.index[attr]=idex_name
+        if attr[0] not in self.index:
+            self.index[attr[0]]=idex_name
         # Get pairs {v1:p1, v2:p2,...}
-        nodes=self.uniqueattr[attr]
+        nodes=self.uniqueattr[attr[0]]
 
         # Create a b tree
         t=OOBTree()
