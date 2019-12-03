@@ -240,14 +240,14 @@ def insert(action):
                         try:
                             value=float(value)
                         except:
-                            raise Exception('ERROR: Invalid symtax')
+                            raise Exception('ERROR 1: Invalid symtax')
                     elif "'" in value:
                         value=value.strip("()' ")
                     else:
                         try:
                             value=int(value)
                         except:
-                            raise Exception('ERROR: Invalid symtax')
+                            raise Exception('ERROR 2: Invalid symtax')
 
                     data.append(value)
                     if ')' in elem:
@@ -259,8 +259,8 @@ def insert(action):
                         }
 
             else:
-                raise Exception('ERROR: Invalid syntax')
-            raise Exception('ERROR: Invalid syntax')
+                raise Exception('ERROR 3: Invalid syntax')
+            raise Exception('ERROR 4: Invalid syntax')
         else:   # attrs and data
 
             # Get attrs
@@ -276,38 +276,40 @@ def insert(action):
                 for _ in range(count):
                     action.pop(0)
                 if action==[]: 
-                    raise Exception('ERROR: No data')
+                    raise Exception('ERROR 5: No data')
                 # print(attrs)
                 if len(attrs)!=len(set(attrs)): 
-                    raise Exception('ERROR: Duplicated attributes')
+                    raise Exception('ERROR 6: Duplicated attributes')
                 if action[0].upper()!='VALUES':
-                    raise Exception('ERROR: Invalid syntax')
+                    raise Exception('ERROR 7: Invalid syntax')
                 action.pop(0)
 
             else:
-                raise Exception('ERROR: Invalid syntax')
+                raise Exception('ERROR 8: Invalid syntax')
 
             if '(' in action[0]:
                 for value in action:
                     elem=value
+                    value=value.strip('() ,')
                     if '.' in value:
                         try:
                             value=float(value)
                         except:
-                            raise Exception('ERROR: Invalid symtax')
+                            raise Exception('ERROR 9: Invalid symtax')
                     elif "'" in value:
                         value=value.strip("()' ,")
                     else:
                         try:
                             value=int(value)
                         except:
-                            raise Exception('ERROR: Invalid symtax')
+                            print(value)
+                            raise Exception('ERROR 10: Invalid symtax')
 
 
                     if ')' in elem:
                         data.append(value)
                         if len(attrs)!=len(data):
-                            raise Exception('ERROR: Data length is not correponding to attributes.')
+                            raise Exception('ERROR 11: Data length is not correponding to attributes.')
 
                         return{
                             'mainact' : 'insert',
@@ -316,10 +318,10 @@ def insert(action):
                             'data' : data
                         }
                     data.append(value)
-                raise Exception('ERROR: Invalid syntax')
+                raise Exception('ERROR 12: Invalid syntax')
                 
             else:
-                raise Exception('ERROR: Invalid syntax')
+                raise Exception('ERROR 13: Invalid syntax')
 
     else:
         raise Exception('Syntax error! Recommend : insert into ')
