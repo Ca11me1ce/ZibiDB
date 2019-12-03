@@ -129,7 +129,7 @@ class Table:
             if len(data)!=len(self.attrls):
                 raise Exception('ERROR: Full-attr values is needed')
 
-            dat = data
+            dat = data[::]
             # Get primary-key values
             for _ in range(len(self.primary)):
                 prmkvalue.append(dat.pop(0))
@@ -146,9 +146,9 @@ class Table:
                 # If unique, call self uniquecheck()
                 if attname in self.uniqueattr.keys():
                     if value in self.uniqueattr[attname].keys():
-                        raise Exception('ERROR: Unique attribute values are in conflict' + data)
+                        raise Exception('ERROR: Unique attribute values are in conflict!  ' + attname + " : " + str(value))
                     self.uniqueattr[attname][value] = prmkvalue
-                #self.attrs[attname].typecheck(value)
+                self.attrs[attname].typecheck(value)
                 # If it is not unique, raise error in the function
                 # Else, continue
 
@@ -172,10 +172,10 @@ class Table:
 
                 if attname in self.uniqueattr.keys():
                     if value in self.uniqueattr[attname].keys():
-                        raise Exception('ERROR: Unique attribute values are in conflict!  ' + attname + " : " + value)
+                        raise Exception('ERROR: Unique attribute values are in conflict!  ' + attname + " : " + str(value))
                     self.uniqueattr[attname][value] = prmkvalue
                 #self.attrs[attname].typecheck(value)
-
+                self.attrs[attname].typecheck(value)
                 attrs_dict[attname] = value
 
              # Get primary-key values
@@ -198,6 +198,36 @@ class Table:
     def deserialize(self):
         pass
     
+    def delete(self, table_name, where):
+        if where == []:
+            self.data = {}
+            self.datalist = []
+            for a in self.uniqueattr.keys():
+                self.uniqueattr[a] = {}
+            #self.BTree
+        elif len(where) > 1:
+            raise Exception('ERROR: Mutiple where conditions is coming soon')
+        elif len(where) == 1:
+            if where[0]['attr'] not in self.primary:
+                raise Exception('ERROR: You should delete by one of the primary key!')
+            else:
+                if where[0]['symbol']=='=':
+                    value=where[0]['value']
+                    try:
+                        value=int(value)
+                    except:
+                        pass
+
+                    del self.data[tuple([value])]
+                    self.df=self.df[self.df[where[0]['attr']]!=value]
+                elif where[0]['symbol']=='<>':
+                    try:
+                        value=int(value)
+                    except:
+                        pass
+                    self.data={self.data[value]}
+                    self.df=self.df[self.df[where[0]['attr']]==value]
+
     def search(self, attr, sym, tag, condition, gb):
         # attr: [] or *
         # situation: number means different conditions
