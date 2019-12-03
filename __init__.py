@@ -230,6 +230,8 @@ class Engine:
             table = Table(jointable.columns, info)
             table.df = jointable
             table.flag = 1
+            print("jointable")
+            print(jointable)
 
         elif len(tables) == 1:
             table = db.tables[tables[0]]
