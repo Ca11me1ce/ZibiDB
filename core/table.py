@@ -139,7 +139,7 @@ class Table:
             attvalue=dat
 
             # TODO: typecheck
-            for i in data:
+            for i in range(len(data)):
                 value = data[i]
                 attname = self.attrls[i]
                 # typecheck()
@@ -153,7 +153,6 @@ class Table:
                 #self.attrs[attname].typecheck(value)
                 # If it is not unique, raise error in the function
                 # Else, continue
-
             # Hash data
             self.data[tuple(prmkvalue)]=attvalue
         else:
@@ -176,7 +175,7 @@ class Table:
                     if value in self.uniqueattr[attname].keys():
                         raise Exception('ERROR: Unique attribute values are in conflict!  ' + attname + " : " + value)
                     self.uniqueattr[attname][value] = prmkvalue
-                #self.attrs[attname].typecheck(value)
+                # self.attrs[attname].typecheck(value)
                 print("compelete")
 
                 attrs_dict[attname] = value
