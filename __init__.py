@@ -113,7 +113,13 @@ class Engine:
 
     def addor(self, table1, table2):
         return 
-        
+
+    def delete(self, db, name, where):
+        db.tables[name].delete(name, where)
+        return db
+            
+
+       
     # lauch function: receieve a command and send to execution function.
     def start(self):
         db = None
@@ -185,13 +191,16 @@ class Engine:
             return 'continue', db
 
         if action['mainact'] == 'select':
-
-            restable = self.selectQuery(db, action['attrs'], action['tables'], action['where'])
-            print (restable)
-            return 'continue', db
+            if db:
+                restable = self.selectQuery(db, action['attrs'], action['tables'], action['where'])
+                print (restable)
+                return 'continue', db
+            else:
+                raise Exception('ERROR: Use database first.')
 
         if action['mainact'] == 'delete':
-            pass
+            db = self.delete(db, action['table'], action['where'])
+            return 'continue', db 
 
         if action['mainact'] == 'update':
             pass

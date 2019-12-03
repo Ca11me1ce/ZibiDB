@@ -795,7 +795,9 @@ def delete(action):
 
         # where clause poland expression
         where_expression=parse_conditions(conditions)	# Parse where clause
+    print('PASS: Deleted data')
     return{
+        'mainact': 'delete',
         'table': table_name,
         'where': where_expression,
     }
