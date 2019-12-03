@@ -230,8 +230,6 @@ class Engine:
             table = Table(jointable.columns, info)
             table.df = jointable
             table.flag = 1
-            print("jointable")
-            print(jointable)
 
         elif len(tables) == 1:
             table = db.tables[tables[0]]
@@ -245,7 +243,6 @@ class Engine:
         restable = self.subselect(table, attrs, cond)
         return restable
         
-
 
     def subselect(self, table, attrs, where):
         sym = ''

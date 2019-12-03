@@ -84,7 +84,6 @@ class Database():
             df = pd.merge(df1, df2, left_on=attrs[0], right_on=attrs[1])
         else:
             df = df1.assign(key=1).merge(df2.assign(key=1), on='key').drop('key', 1)
-        print (df)
         return df
 
     def df_and(self, df1, df2):
