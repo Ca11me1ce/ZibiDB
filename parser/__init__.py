@@ -236,7 +236,20 @@ def insert(action):
             if '(' in action[0]:
                 for value in action:
                     elem=value
-                    data.append(value.strip('() '))
+                    if '.' in value:
+                        try:
+                            value=float(value)
+                        except:
+                            raise Exception('ERROR: Invalid symtax')
+                    elif "'" in value:
+                        value=value.strip("()' ")
+                    else:
+                        try:
+                            value=int(value)
+                        except:
+                            raise Exception('ERROR: Invalid symtax')
+
+                    data.append(value)
                     if ')' in elem:
                         return{
                             'mainact' : 'insert',
@@ -275,9 +288,24 @@ def insert(action):
                 raise Exception('ERROR: Invalid syntax')
 
             if '(' in action[0]:
-                for elem in action:
+                for value in action:
+                    elem=value
+                    if '.' in value:
+                        try:
+                            value=float(value)
+                        except:
+                            raise Exception('ERROR: Invalid symtax')
+                    elif "'" in value:
+                        value=value.strip("()' ,")
+                    else:
+                        try:
+                            value=int(value)
+                        except:
+                            raise Exception('ERROR: Invalid symtax')
+
+
                     if ')' in elem:
-                        data.append(elem.strip('() ,'))
+                        data.append(value)
                         if len(attrs)!=len(data):
                             raise Exception('ERROR: Data length is not correponding to attributes.')
 
@@ -287,7 +315,7 @@ def insert(action):
                             'attrs' : attrs,
                             'data' : data
                         }
-                    data.append(elem.strip('() ,'))
+                    data.append(value)
                 raise Exception('ERROR: Invalid syntax')
                 
             else:
