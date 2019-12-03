@@ -21,8 +21,6 @@ class Table:
         self.index={}   #{attr: idex_name}
         self.BTree={}   #{idex_name: BTree}
         self.flag = 0
-        if self.flag == 1:
-            print("flag")
 
         for attr in info['attrs']:
             temp = Attribute(attr)
@@ -238,7 +236,6 @@ class Table:
         # df = pd.DataFrame(self.datalist, columns = self.attrls)
         if self.flag == 0:
             self.df = pd.DataFrame(self.datalist, columns = self.attrls)
-        self.df = pd.DataFrame(self.datalist, columns = self.attrls)
         symbols = {
             '=': 1,
             '>': 2,
@@ -249,7 +246,6 @@ class Table:
             'NOT LIKE': 7,
             '<>': 8
         }
-
         if len(sym) == 0:
             situation = 0
         else:
