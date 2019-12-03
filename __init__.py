@@ -77,7 +77,12 @@ class Engine:
 
     # insert into perSON (id, position, name, address) values (2, 'eater', 'Yijing', 'homeless')
     def insertTable(self, db, table_name, attrs, data):
+        print("inserttable")
         db.tables[table_name].insert(attrs, data)
+<<<<<<< HEAD
+=======
+        print (db.tables[table_name].datalist)
+>>>>>>> 333cbbcf341e6100ed8af42d17b330f135257362
         return db
         
     def selectQuery(self, db, attrs, tables, where):
@@ -115,8 +120,6 @@ class Engine:
         used_attrs=[]
         join_con=[]
         for item in where:
-            if type(item)==type('1'):
-                continue
             if item['tag']==1:
                 join_con.append(item)
                 where.remove(item)
@@ -150,7 +153,6 @@ class Engine:
                     tc.append(condition)
 
         # Append one table and one condition by order
-        print('bk2')
         while join_con:
             for condition in join_con:
                 if condition['attr'] in used_attrs:
@@ -179,7 +181,7 @@ class Engine:
                 else:
                     raise Exception('ERROR: Invalid symtax')
 
-        print('bk3')
+
         while tbl:
             if len(tc) > 3 :
                 tc.append(tbl[0])
@@ -203,7 +205,6 @@ class Engine:
 
         })
 
-        
         if tc:
 
             to = {}
@@ -229,13 +230,17 @@ class Engine:
 
         elif len(tables) == 1:
             table = db.tables[tables[0]]
-        print('bk5')
 
+<<<<<<< HEAD
         if len(vc):
+=======
+
+        if vc:
+>>>>>>> 333cbbcf341e6100ed8af42d17b330f135257362
             cond = {'tag': vc[0]['tag'], 'sym': vc[0]['symbol'], 'condition': [vc[0]['attr'],  vc[0]['value']]}
         else:
-            cond = {}            
-        print('bk6')
+            cond = {} 
+
         restable = self.subselect(table, attrs, cond)
         return restable
         
@@ -249,7 +254,12 @@ class Engine:
             sym = where['sym']
             tag = where['tag']
             condition = where['condition']
-        df = table.search(attrs, sym, tag, condition, gb)
+            if condition[0] in table.uniqueattr.keys():
+                ind = {'attr':where['condition'][0],'value':where['condition'][1],'symbol':where['sym']}
+                df = table.index_search(attrs, ind)
+                return df
+        else:
+            df = table.search(attrs, sym, tag, condition, gb)
         return df
 
     def join(self, table1, table2, attrs):
@@ -262,6 +272,19 @@ class Engine:
         return df
     def delete(self, db, name, where):
         db.tables[name].delete(name, where)
+        return db
+
+    def update(self, db, name, where, set):
+        db = self.delete(db, name, where)
+        db = self.insertTable(db, name, set['attrs'], set['data'])
+        return db
+
+    def createIndex(self, db, table, iname, attr):
+        db = db.tables[table].add_index(attr, iname)
+        return db
+
+    def dropIndex(self, db, table, iname):
+        db = db.tables[table].drop_index(iname)
         return db
         
     # lauch function: receieve a command and send to execution function.
@@ -372,6 +395,12 @@ class Engine:
                     db = self.createTable(db, action['attrls'], action['info'])
                 else:
                     raise Exception('ERROR: Please choose a database to use first.')
+            elif action['type'] == 'index':
+                if db:
+                    db = self.createIndex(db, action['table'], action['index_name'], action['attrs'])
+                else:
+                    raise Exception('ERROR: Please choose a database to use first.')
+
             return 'continue', db
 
         if action['mainact'] == 'drop':
@@ -391,6 +420,12 @@ class Engine:
                     db = None
             elif action['type'] == 'table':
                 self.dropTable(db, action['table_name'])
+            elif action['type'] == 'index':
+                if db:
+                    db = self.dropIndex(db, action['table'], action['index_name'])
+                else:
+                    raise Exception('ERROR: Please choose a database to use first.')
+
             return 'continue', db
 
         if action['mainact'] == 'insert':
@@ -411,7 +446,8 @@ class Engine:
             return 'continue', db 
 
         if action['mainact'] == 'update':
-            pass
+            db = self.update(db, action['table'], action['where'], action['set'])
+            return 'continue', db 
 
         if action['mainact'] == 'save':
             if db:

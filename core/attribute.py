@@ -37,8 +37,13 @@ class Attribute:
         print('bk16')
         # if self.constraincheck(value)==False:
 
+<<<<<<< HEAD
         #     raise Exception('ERROR 5: The value do not satisfied to the constrain.')
         print('bk17')
+=======
+        #if self.constraincheck(value)==False:
+            #raise Exception('ERROR 5: The value do not satisfied to the constrain.')
+>>>>>>> 333cbbcf341e6100ed8af42d17b330f135257362
         return True
         
     def constraincheck(self, value):
