@@ -2,15 +2,13 @@ CREATE TABLE table_name (column_name1 data_type not_null unique, column_name2 da
 
 CREATE TABLE Person (id int not_null unique, position char not_null, name char not_null, address char not_null) primary key (id) foreign key (position) references work (position_id) on delete no_action on update cascade;
 
-<<<<<<< HEAD
 insert into person (id, position, name, address) values (1, 'manager', 'Y', 'home')
-=======
+
 CREATE TABLE P (idd int not_null unique, positiond char not_null unique, named char not_null, addressd char not_null) primary key (idd) foreign key (positiond) references work (position_id) on delete no_action on update cascade;
 
 CREATE TABLE PP (idda int not_null unique, positionda char not_null unique, nameda char not_null, addressda char not_null) primary key (idda) foreign key (positionda) references work (position_ida) on delete no_action on update cascade;
 
 insert into person (id, position, name, address) values (1, 'manager', 'Yang', 'home')
->>>>>>> ce6b541808123822cc2bbfbadc4c1d445d7e027d
 
 insert into perSON (id, position, name, address) values (2, 'eater', 'Y', 'homeless')
 
