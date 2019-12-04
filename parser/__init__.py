@@ -236,7 +236,20 @@ def insert(action):
             if '(' in action[0]:
                 for value in action:
                     elem=value
-                    data.append(value.strip('() '))
+                    if '.' in value:
+                        try:
+                            value=float(value)
+                        except:
+                            raise Exception('ERROR 1: Invalid symtax')
+                    elif "'" in value:
+                        value=value.strip("()' ")
+                    else:
+                        try:
+                            value=int(value)
+                        except:
+                            raise Exception('ERROR 2: Invalid symtax')
+
+                    data.append(value)
                     if ')' in elem:
                         return{
                             'mainact' : 'insert',
@@ -246,8 +259,8 @@ def insert(action):
                         }
 
             else:
-                raise Exception('ERROR: Invalid syntax')
-            raise Exception('ERROR: Invalid syntax')
+                raise Exception('ERROR 3: Invalid syntax')
+            raise Exception('ERROR 4: Invalid syntax')
         else:   # attrs and data
 
             # Get attrs
@@ -263,23 +276,40 @@ def insert(action):
                 for _ in range(count):
                     action.pop(0)
                 if action==[]: 
-                    raise Exception('ERROR: No data')
+                    raise Exception('ERROR 5: No data')
                 # print(attrs)
                 if len(attrs)!=len(set(attrs)): 
-                    raise Exception('ERROR: Duplicated attributes')
+                    raise Exception('ERROR 6: Duplicated attributes')
                 if action[0].upper()!='VALUES':
-                    raise Exception('ERROR: Invalid syntax')
+                    raise Exception('ERROR 7: Invalid syntax')
                 action.pop(0)
 
             else:
-                raise Exception('ERROR: Invalid syntax')
+                raise Exception('ERROR 8: Invalid syntax')
 
             if '(' in action[0]:
-                for elem in action:
+                for value in action:
+                    elem=value
+                    value=value.strip('() ,')
+                    if '.' in value:
+                        try:
+                            value=float(value)
+                        except:
+                            raise Exception('ERROR 9: Invalid symtax')
+                    elif "'" in value:
+                        value=value.strip("()' ,")
+                    else:
+                        try:
+                            value=int(value)
+                        except:
+                            print(value)
+                            raise Exception('ERROR 10: Invalid symtax')
+
+
                     if ')' in elem:
-                        data.append(elem.strip('() ,'))
+                        data.append(value)
                         if len(attrs)!=len(data):
-                            raise Exception('ERROR: Data length is not correponding to attributes.')
+                            raise Exception('ERROR 11: Data length is not correponding to attributes.')
 
                         return{
                             'mainact' : 'insert',
@@ -287,402 +317,410 @@ def insert(action):
                             'attrs' : attrs,
                             'data' : data
                         }
-                    data.append(elem.strip('() ,'))
-                raise Exception('ERROR: Invalid syntax')
+                    data.append(value)
+                raise Exception('ERROR 12: Invalid syntax')
                 
             else:
-                raise Exception('ERROR: Invalid syntax')
+                raise Exception('ERROR 13: Invalid syntax')
 
     else:
         raise Exception('Syntax error! Recommend : insert into ')
 
 def select(action):
-	if action[0].upper()=='SELECT':
-		action.pop(0)
+    if action[0].upper()=='SELECT':
+        action.pop(0)
 
-	# Get distinct
-	_distinct=0
-	if action[0].upper()=='DISTINCT':
-		_distinct=1
-		action.pop(0)
-	print('distinct: ', _distinct)
-	key_words=['FROM', 'WHERE', 'ORDER', 'GROUP', 'BY']
+    # Get distinct
+    _distinct=0
+    if action[0].upper()=='DISTINCT':
+        _distinct=1
+        action.pop(0)
+    print('distinct: ', _distinct)
+    key_words=['FROM', 'WHERE', 'ORDER', 'GROUP', 'BY']
 
-	# Get attrs, and aggragate function
-	select_attrs=[]
-	# attrs_dict=dict()
-	while action[0].upper() not in key_words:
-		select_attrs.append(action.pop(0).lower().strip(', '))	# attr list
+    # Get attrs, and aggragate function
+    select_attrs=[]
+    # attrs_dict=dict()
+    while action[0].upper() not in key_words:
+        select_attrs.append(action.pop(0).lower().strip(', '))  # attr list
 
-	attrs_dict=parse_attrs(select_attrs)
-	print('attrs: ', attrs_dict)
+    attrs_dict=parse_attrs(select_attrs)
+    print('attrs: ', attrs_dict)
 
-	# Get table names
-	# Table names
-	select_tables=[]
-	# print(action)
-	if action.pop(0).upper()=='FROM':
-		while action[0].upper() not in key_words:
-			select_tables.append(action.pop(0).lower().strip(', '))
-			if action==[]:
-				break
-	else: raise Exception('ERROR: Invalid syntax.')
-	print('tables: ', select_tables)
+    # Get table names
+    # Table names
+    select_tables=[]
+    # print(action)
+    if action.pop(0).upper()=='FROM':
+        while action[0].upper() not in key_words:
+            select_tables.append(action.pop(0).lower().strip(', '))
+            if action==[]:
+                break
+    else: raise Exception('ERROR: Invalid syntax.')
+    print('tables: ', select_tables)
 
-	# Where clause
-	where_clause=[]
-	where_expression=dict()
-	# conditions=[]
-	# op=[]
-	if action:
-		if action[0].upper()=='WHERE':
-			action.pop(0)
-			while action[0].upper() not in key_words:
-				where_clause.append(action.pop(0).strip(', '))
-				if not action:
-					break
-			conditions=reorder_where_clause(where_clause)
+    # Where clause
+    where_clause=[]
+    where_expression=dict()
+    # conditions=[]
+    # op=[]
+    if action:
+        if action[0].upper()=='WHERE':
+            action.pop(0)
+            while action[0].upper() not in key_words:
+                where_clause.append(action.pop(0).strip(', '))
+                if not action:
+                    break
+            conditions=reorder_where_clause(where_clause)
 
-			# where clause poland expression
-			where_expression=parse_conditions(conditions)	# Parse where clause
-	print('where clause: ', where_expression)
+            # where clause poland expression
+            where_expression=parse_conditions(conditions)   # Parse where clause
+    print('where clause: ', where_expression)
 
-	# Get group by clause
-	groupBy_clause=[]
-	groupBy_expression=dict()
-	if action:
-		if action[0].upper()=='GROUP':
-			action.pop(0)	# Pop group
-			# pop BY
-			if action.pop(0).upper()!='BY': raise Exception('ERROR: Invalid syntax.') 
-			while action[0].upper() not in key_words:
-				groupBy_clause.append(action.pop(0).strip(', '))
-				if not action:
-					break
-			if groupBy_clause[0].upper()=='HAVING': raise Exception('ERROR: Invalid syntax.')
+    # Get group by clause
+    groupBy_clause=[]
+    groupBy_expression=dict()
+    if action:
+        if action[0].upper()=='GROUP':
+            action.pop(0)   # Pop group
+            # pop BY
+            if action.pop(0).upper()!='BY': raise Exception('ERROR: Invalid syntax.') 
+            while action[0].upper() not in key_words:
+                groupBy_clause.append(action.pop(0).strip(', '))
+                if not action:
+                    break
+            if groupBy_clause[0].upper()=='HAVING': raise Exception('ERROR: Invalid syntax.')
 
-			groupBy_expression=parse_groupBy(groupBy_clause, attrs_dict)
-	print('GROUP BY CLAUSE: ', groupBy_expression)
+            groupBy_expression=parse_groupBy(groupBy_clause, attrs_dict)
+    print('GROUP BY CLAUSE: ', groupBy_expression)
 
-	orderBy_clause=[]
-	orderBy_expression=dict()
-	if action:
-		if action[0].upper()=='ORDER':
-			action.pop(0)	# Pop order
-			if action.pop(0).upper()!='BY':
-				raise Exception('ERROR: Invalid syntax')
-			while action[0].upper() not in key_words:
-				orderBy_clause.append(action.pop(0).lower().strip(', '))
-				if not action:
-					break
-			orderBy_expression=parse_orderBy(orderBy_clause)
-	print('ORDER BY CLAUSE: ', orderBy_expression)
-	if action!=[]:
-		raise Exception('ERROR: Invalid syntax.')
-	return {
+    orderBy_clause=[]
+    orderBy_expression=dict()
+    if action:
+        if action[0].upper()=='ORDER':
+            action.pop(0)   # Pop order
+            if action.pop(0).upper()!='BY':
+                raise Exception('ERROR: Invalid syntax')
+            while action[0].upper() not in key_words:
+                orderBy_clause.append(action.pop(0).lower().strip(', '))
+                if not action:
+                    break
+            orderBy_expression=parse_orderBy(orderBy_clause)
+    print('ORDER BY CLAUSE: ', orderBy_expression)
+    if action!=[]:
+        raise Exception('ERROR: Invalid syntax.')
+    return {
         'mainact': 'select',
         'attrs': attrs_dict,    # dict->{attr: aggregate function, } such as {id: MAX, }
         'tables': select_tables,    # list->[table_names]
-        'where': where_expression,  # list->[{attr: , value: , symbol: }, op, ] Poland expression
+        'where': where_expression,  # list->[{attr: , value: , symbol: , tag:}, op, ] Poland expression
         # dict->{group_by: [attrs], conditions: [Poland expression like where_clause]}
         'groupby': groupBy_expression,  
         'orderby': orderBy_expression   # dict->{order_by: [attrs], order: DESC/ASC/NO_ACTION}
     }
 
 def reorder_where_clause(where_clause):
-	conditions=[]
-	temp=[]
-	op=[]
-	for i in range(len(where_clause)):		
-		condition=dict()
-		if (where_clause[i].upper() in ['OR', 'AND', '(', ')'] and where_clause[i-2].upper()!='BETWEEN') or i==len(where_clause)-1:
-			if i==len(where_clause)-1:
-				temp.append(where_clause[i])
-			else:
-				op.append(where_clause[i].upper())
-				if where_clause[i+1].upper() in ['OR', 'AND', '(', ')']:
-					continue				
+    conditions=[]
+    temp=[]
+    op=[]
+    for i in range(len(where_clause)):      
+        condition=dict()
+        if (where_clause[i].upper() in ['OR', 'AND', '(', ')'] and where_clause[i-2].upper()!='BETWEEN') or i==len(where_clause)-1:
+            if i==len(where_clause)-1:
+                temp.append(where_clause[i])
+            else:
+                op.append(where_clause[i].upper())
+                if where_clause[i+1].upper() in ['OR', 'AND', '(', ')']:
+                    continue                
 
-			if temp:
-				tag=0
-				temp=' '.join(temp)
-				if '<=' in temp:
+            if temp:
+                tag=0
+                temp=' '.join(temp)
+                if '<=' in temp:
 
-					tmp=temp.split('<=')
-					try:
-						value=float(tmp[1])
-					except:
-						value=tmp[1]
-						tag=1
-					condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '<=', 'tag': tag}
-				elif '>=' in temp:
-					tmp=temp.split('>=')
-					try:
-						value=float(tmp[1])
-					except:
-						value=tmp[1]
-						tag=1
-					condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '>=', 'tag': tag}
-				elif '<>' in temp:
-					if tmp[1][0]!="'" and tmp[1][len(tmp[1])-1]!="'":
-						tag=1
-					tmp=temp.split('<>')
-					condition={'attr': tmp[0].lower(), 'value': tmp[1].strip("'"), 'symbol': '<>', 'tag': tag}
-				elif '=' in temp:
-					tmp=temp.split('=')
-					if tmp[1][0]!="'" and tmp[1][len(tmp[1])-1]!="'":
-						tag=1
-					condition={'attr': tmp[0].lower(), 'value': tmp[1].strip("'"), 'symbol': '=', 'tag': tag}
-				elif '<' in temp:
-					tmp=temp.split('<')
-					try:
-						value=float(tmp[1])
-					except:
-						value=tmp[1]
-						tag=1
-					condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '<', 'tag': tag}
-				elif '>' in temp:
-					tmp=temp.split('>')
-					try:
-						value=float(tmp[1])
-					except:
-						value=tmp[1]
-						tag=1
-					condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '>', 'tag': tag}
-				elif ' LIKE ' in temp.upper():
-					tmp=temp.split('LIKE')
-					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': 'LIKE', 'tag': 0 }
-				elif ' NOT LIKE ' in temp.upper():
-					tmp=temp.split('LIKE')
-					condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': 'NOT LIKE', 'tag': 0 }
-				elif 'BETWEEN' in temp.upper():
-					tmp=temp.split(' ')
-					tmp_attr=tmp.pop(0).lower() #Pop attr
-					if tmp.pop(0).upper()!='BETWEEN': raise Exception('ERROR: Invalid Where Clause.')   #Pop Between
-					
-					try:
-						if float(tmp[0])>float(tmp[2]):
-							raise Exception('ERROR: Invalid where clause')
-					except: raise Exception('ERROR: Invalid where clause')
+                    tmp=temp.split('<=')
+                    try:
+                        value=float(tmp[1])
+                    except:
+                        value=tmp[1]
+                        tag=1
+                    condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '<=', 'tag': tag}
+                elif '>=' in temp:
+                    tmp=temp.split('>=')
+                    try:
+                        value=float(tmp[1])
+                    except:
+                        value=tmp[1]
+                        tag=1
+                    condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '>=', 'tag': tag}
+                elif '<>' in temp:
+                    if tmp[1][0]!="'" and tmp[1][len(tmp[1])-1]!="'":
+                        tag=1
+                    tmp=temp.split('<>')
+                    condition={'attr': tmp[0].lower(), 'value': tmp[1].strip("'"), 'symbol': '<>', 'tag': tag}
+                elif '=' in temp:
+                    tmp=temp.split('=')
+                    if tmp[1][0]!="'" and tmp[1][len(tmp[1])-1]!="'":
+                        tag=1
 
-					# v1
-					conditions.append({
-						'attr': tmp_attr,
-						'value': tmp.pop(0),
-						'symbol': '>=',
+                    value = tmp[1].strip('() ,')
+                    try:
+                        value=int(value)
+                        tag=0
+                    except:
+                        tag=1
+
+                    condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '=', 'tag': tag}
+                elif '<' in temp:
+                    tmp=temp.split('<')
+                    try:
+                        value=float(tmp[1])
+                    except:
+                        value=tmp[1]
+                        tag=1
+                    condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '<', 'tag': tag}
+                elif '>' in temp:
+                    tmp=temp.split('>')
+                    try:
+                        value=float(tmp[1])
+                    except:
+                        value=tmp[1]
+                        tag=1
+                    condition={'attr': tmp[0].lower(), 'value': value, 'symbol': '>', 'tag': tag}
+                elif ' LIKE ' in temp.upper():
+                    tmp=temp.split('LIKE')
+                    condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': 'LIKE', 'tag': 0 }
+                elif ' NOT LIKE ' in temp.upper():
+                    tmp=temp.split('LIKE')
+                    condition={'attr': tmp[0].lower(), 'value': tmp[1], 'symbol': 'NOT LIKE', 'tag': 0 }
+                elif 'BETWEEN' in temp.upper():
+                    tmp=temp.split(' ')
+                    tmp_attr=tmp.pop(0).lower() #Pop attr
+                    if tmp.pop(0).upper()!='BETWEEN': raise Exception('ERROR: Invalid Where Clause.')   #Pop Between
+                    
+                    try:
+                        if float(tmp[0])>float(tmp[2]):
+                            raise Exception('ERROR: Invalid where clause')
+                    except: raise Exception('ERROR: Invalid where clause')
+
+                    # v1
+                    conditions.append({
+                        'attr': tmp_attr,
+                        'value': tmp.pop(0),
+                        'symbol': '>=',
                         'tag': 0 
-					})
+                    })
 
-					if tmp.pop(0).upper()!='AND': raise Exception('ERROR: Invalid Where Clause.')   # Pop AND
-					conditions.append('AND')
-					# v2
-					conditions.append({
-						'attr': tmp_attr,
-						'value': tmp.pop(0),
-						'symbol': '<=',
+                    if tmp.pop(0).upper()!='AND': raise Exception('ERROR: Invalid Where Clause.')   # Pop AND
+                    conditions.append('AND')
+                    # v2
+                    conditions.append({
+                        'attr': tmp_attr,
+                        'value': tmp.pop(0),
+                        'symbol': '<=',
                         'tag': 0 
-					})
-					temp=[]
-					if op:
-						while op:
-							conditions.append(op.pop(0))
-					continue
-				elif 'BETWEEN' in temp.upper():
-					tmp=temp.split(' ')
-					tmp_attr=tmp.pop(0).lower() #Pop attr
-					if tmp.pop(0).upper()!='BETWEEN': raise Exception('ERROR: Invalid Where Clause.')   #Pop Between
-					
-					try:
-						if float(tmp[0])>float(tmp[2]):
-							raise Exception('ERROR: Invalid where clause')
-					except: raise Exception('ERROR: Invalid where clause')
+                    })
+                    temp=[]
+                    if op:
+                        while op:
+                            conditions.append(op.pop(0))
+                    continue
+                elif 'BETWEEN' in temp.upper():
+                    tmp=temp.split(' ')
+                    tmp_attr=tmp.pop(0).lower() #Pop attr
+                    if tmp.pop(0).upper()!='BETWEEN': raise Exception('ERROR: Invalid Where Clause.')   #Pop Between
+                    
+                    try:
+                        if float(tmp[0])>float(tmp[2]):
+                            raise Exception('ERROR: Invalid where clause')
+                    except: raise Exception('ERROR: Invalid where clause')
 
-					# v1
-					conditions.append({
-						'attr': tmp_attr,
-						'value': tmp.pop(0),
-						'symbol': '<=',
+                    # v1
+                    conditions.append({
+                        'attr': tmp_attr,
+                        'value': tmp.pop(0),
+                        'symbol': '<=',
                         'tag': 0 
-					})
+                    })
 
-					if tmp.pop(0).upper()!='AND': raise Exception('ERROR: Invalid Where Clause.')   # Pop AND
-					conditions.append('AND')
-					# v2
-					conditions.append({
-						'attr': tmp_attr,
-						'value': tmp.pop(0),
-						'symbol': '>=',
+                    if tmp.pop(0).upper()!='AND': raise Exception('ERROR: Invalid Where Clause.')   # Pop AND
+                    conditions.append('AND')
+                    # v2
+                    conditions.append({
+                        'attr': tmp_attr,
+                        'value': tmp.pop(0),
+                        'symbol': '>=',
                         'tag': 0 
-					})
-					temp=[]
-					if op:
-						while op:
-							conditions.append(op.pop(0))
-					continue
-				elif ' IN ' in temp.upper():
-					tmp=temp.split(' ')
-					tmp_attr=tmp.pop(0).lower()    # Pop attr
-					if tmp.pop(0).upper()!='IN': raise Exception('ERROR: Invalid Where Clause.')  # Pop IN
-					tmp=','.join(tmp).strip('() ').split(',')
-					count=0
-					for val in tmp:
-						conditions.append({
-							'attr': tmp_attr,
-							'value': val.strip(', '),
-							'symbol': '=',
+                    })
+                    temp=[]
+                    if op:
+                        while op:
+                            conditions.append(op.pop(0))
+                    continue
+                elif ' IN ' in temp.upper():
+                    tmp=temp.split(' ')
+                    tmp_attr=tmp.pop(0).lower()    # Pop attr
+                    if tmp.pop(0).upper()!='IN': raise Exception('ERROR: Invalid Where Clause.')  # Pop IN
+                    tmp=','.join(tmp).strip('() ').split(',')
+                    count=0
+                    for val in tmp:
+                        conditions.append({
+                            'attr': tmp_attr,
+                            'value': val.strip(', '),
+                            'symbol': '=',
                             'tag': 0 
-						})
-						count+=1
-						if count!=len(tmp):
-							conditions.append('OR')
-					temp=[]
-					if op:
-						while op:
-							conditions.append(op.pop(0))
-					continue
-				elif ' NOT IN ' in temp.upper():
-					tmp=temp.split(' ')
-					tmp_attr=tmp.pop(0).lower()    # Pop attr
-					if tmp.pop(0).upper()!='IN': raise Exception('ERROR: Invalid Where Clause.')  # Pop IN
-					tmp=','.join(tmp).strip('() ').split(',')
-					count=0
-					for val in tmp:
-						conditions.append({
-							'attr': tmp_attr,
-							'value': val.strip(', '),
-							'symbol': '<>',
+                        })
+                        count+=1
+                        if count!=len(tmp):
+                            conditions.append('OR')
+                    temp=[]
+                    if op:
+                        while op:
+                            conditions.append(op.pop(0))
+                    continue
+                elif ' NOT IN ' in temp.upper():
+                    tmp=temp.split(' ')
+                    tmp_attr=tmp.pop(0).lower()    # Pop attr
+                    if tmp.pop(0).upper()!='IN': raise Exception('ERROR: Invalid Where Clause.')  # Pop IN
+                    tmp=','.join(tmp).strip('() ').split(',')
+                    count=0
+                    for val in tmp:
+                        conditions.append({
+                            'attr': tmp_attr,
+                            'value': val.strip(', '),
+                            'symbol': '<>',
                             'tag': 0 
-						})
-						count+=1
-						if count!=len(tmp):
-							conditions.append('OR')
-					temp=[]
-					if op:
-						while op:
-							conditions.append(op.pop(0))
-					continue
-				else: raise Exception('ERROR: Invalid where clause')
-				conditions.append(condition)
-				if op:
-					while op:
-						conditions.append(op.pop(0))
-			# else: raise Exception('ERROR: Invalid where clause')
-			temp=[]
-		else:
-			temp.append(where_clause[i])
-	return conditions
+                        })
+                        count+=1
+                        if count!=len(tmp):
+                            conditions.append('OR')
+                    temp=[]
+                    if op:
+                        while op:
+                            conditions.append(op.pop(0))
+                    continue
+                else: raise Exception('ERROR: Invalid where clause')
+                conditions.append(condition)
+                if op:
+                    while op:
+                        conditions.append(op.pop(0))
+            # else: raise Exception('ERROR: Invalid where clause')
+            temp=[]
+        else:
+            temp.append(where_clause[i])
+    return conditions
 
 def parse_attrs(attrs):
-	# Input: list, aggragete attrs and normal attrs
-	# Output: dict, key is attr, value is aggragation
-	# ex. {id: max}
-	# print(attrs)
-	key_words=['MAX', 'MIN', 'AVG', 'COUNT', 'SUM']
+    # Input: list, aggragete attrs and normal attrs
+    # Output: dict, key is attr, value is aggragation
+    # ex. {id: max}
+    # print(attrs)
+    key_words=['MAX', 'MIN', 'AVG', 'COUNT', 'SUM']
 
-	parse_attrs=dict()
-	for attr in attrs:
-		if '(' in attr and attr[-1]==')':
-			temp=attr.split('(')
-			# temp 0 is aggragate
-			# temp 1 is attr
-			agg_word=temp[0].strip('() ,').upper()
-			attr_tmp=temp[1].strip('() ,').lower()
-			if agg_word not in key_words: raise Exception('ERROR: Invalid syntax.')
+    parse_attrs=dict()
+    for attr in attrs:
+        if '(' in attr and attr[-1]==')':
+            temp=attr.split('(')
+            # temp 0 is aggragate
+            # temp 1 is attr
+            agg_word=temp[0].strip('() ,').upper()
+            attr_tmp=temp[1].strip('() ,').lower()
+            if agg_word not in key_words: raise Exception('ERROR: Invalid syntax.')
 
-			parse_attrs[attr_tmp]=agg_word
-			
-		elif '(' not in attr and ')' not in attr:
-			parse_attrs[attr]='NORMAL'
-		else: raise Exception('ERROR: Invalid syntax.')
-	return parse_attrs
+            parse_attrs[attr_tmp]=agg_word
+            
+        elif '(' not in attr and ')' not in attr:
+            parse_attrs[attr]='NORMAL'
+        else: raise Exception('ERROR: Invalid syntax.')
+    return parse_attrs
 
 def parse_groupBy(groupBy_clause, attrs):
-	att=attrs.copy()
+    att=attrs.copy()
 
-	# TODO: Check attr and groupBy attr
-	print(groupBy_clause)
-	groupBy=[]
-	having=[]
-	for i in range(len(groupBy_clause)):
-		if groupBy_clause[i].upper()=='HAVING':
-			having=groupBy_clause[i+1:]
-			break
-		groupBy.append(groupBy_clause[i])
+    # TODO: Check attr and groupBy attr
+    print(groupBy_clause)
+    groupBy=[]
+    having=[]
+    for i in range(len(groupBy_clause)):
+        if groupBy_clause[i].upper()=='HAVING':
+            having=groupBy_clause[i+1:]
+            break
+        groupBy.append(groupBy_clause[i])
 
-	if len(groupBy)==len(attrs):
-		if set(groupBy)!=set(attrs.keys()):
-			raise Exception('ERROR 1: Invalid group by clause.')
-		if len(set(attrs.values()))!=1:
-			raise Exception('ERROR 2: Group by attrs cannot have aggregate function')
-		if 'NORMAL' not in list(attrs.values()):
-			raise Exception('ERROR 3: Group by attrs cannot have aggregate function')
-	else:
-		for elem in groupBy:
-			del att[elem]
-		if 'NORMAL' in list(att.values()):
-			raise Exception('ERROR 4: Invalid group by clause')
+    if len(groupBy)==len(attrs):
+        if set(groupBy)!=set(attrs.keys()):
+            raise Exception('ERROR 1: Invalid group by clause.')
+        if len(set(attrs.values()))!=1:
+            raise Exception('ERROR 2: Group by attrs cannot have aggregate function')
+        if 'NORMAL' not in list(attrs.values()):
+            raise Exception('ERROR 3: Group by attrs cannot have aggregate function')
+    else:
+        for elem in groupBy:
+            del att[elem]
+        if 'NORMAL' in list(att.values()):
+            raise Exception('ERROR 4: Invalid group by clause')
 
 
-	conditions=reorder_where_clause(having)
-	expression=parse_conditions(conditions)
+    conditions=reorder_where_clause(having)
+    expression=parse_conditions(conditions)
 
-	return {
-		'group_by': groupBy,
-		'conditions': expression
-	}
+    return {
+        'group_by': groupBy,
+        'conditions': expression
+    }
 
 def parse_orderBy(orderBy_clause):
-	# Input: list, order by clause
-	# Output: dict, {order_by: attr, order: desc/asc/no_action}
-	print(orderBy_clause)
-	key_words=['DESC', 'ASC']
-	order_status='NO_ACTION'
-	orderBy=[]
+    # Input: list, order by clause
+    # Output: dict, {order_by: attr, order: desc/asc/no_action}
+    print(orderBy_clause)
+    key_words=['DESC', 'ASC']
+    order_status='NO_ACTION'
+    orderBy=[]
 
-	if orderBy_clause[-1].upper() in key_words:
-		order_status=orderBy_clause[-1].upper().strip()
-		orderBy=orderBy_clause[: len(orderBy_clause)-1]
-	else:
-		orderBy=orderBy_clause
+    if orderBy_clause[-1].upper() in key_words:
+        order_status=orderBy_clause[-1].upper().strip()
+        orderBy=orderBy_clause[: len(orderBy_clause)-1]
+    else:
+        orderBy=orderBy_clause
 
-	return {
-		'order_by': orderBy,
-		'order': order_status
-	}
+    return {
+        'order_by': orderBy,
+        'order': order_status
+    }
 
 def parse_conditions(con_ls):
-	# Poland expression
-	# op=['OR', 'AND']
-	stack=[]
-	ops=[]
-	for item in con_ls:
-		if str(item).upper() in ['OR', 'AND']:
-			while len(ops)>=0:
-				if len(ops)==0:
-					ops.append(item)
-					break
-				op=ops.pop()
-				if op=='(':
-					ops.append(op)
-					ops.append(item)
-					break
-				else:
-					stack.append(op)
-		elif item=='(':
-			ops.append(item)
-		elif item==')':
-			while len(ops)>=0:
-				op=ops.pop()
-				if op=='(':
-					break
-				else:
-					stack.append(op)
-		else:
-			stack.append(item)
+    # Poland expression
+    # op=['OR', 'AND']
+    stack=[]
+    ops=[]
+    for item in con_ls:
+        if str(item).upper() in ['OR', 'AND']:
+            while len(ops)>=0:
+                if len(ops)==0:
+                    ops.append(item)
+                    break
+                op=ops.pop()
+                if op=='(':
+                    ops.append(op)
+                    ops.append(item)
+                    break
+                else:
+                    stack.append(op)
+        elif item=='(':
+            ops.append(item)
+        elif item==')':
+            while len(ops)>=0:
+                op=ops.pop()
+                if op=='(':
+                    break
+                else:
+                    stack.append(op)
+        else:
+            stack.append(item)
 
-	while len(ops)>0:
-		stack.append(ops.pop())
-	return stack
+    while len(ops)>0:
+        stack.append(ops.pop())
+    return stack
 
 def save(action):
     return{
@@ -740,7 +778,7 @@ def update(action):
         conditions=reorder_where_clause(action)
 
         # where clause poland expression
-        where_expression=parse_conditions(conditions)	# Parse where clause
+        where_expression=parse_conditions(conditions)   # Parse where clause
     return {
         'table': table_name,    # str->table name
         'set': set_dict,    # list->[{attr:, value:}]
@@ -761,7 +799,7 @@ def delete(action):
         conditions=reorder_where_clause(action)
 
         # where clause poland expression
-        where_expression=parse_conditions(conditions)	# Parse where clause
+        where_expression=parse_conditions(conditions)   # Parse where clause
     return{
         'table': table_name,
         'where': where_expression,
@@ -769,21 +807,21 @@ def delete(action):
 
 def create_index(action):
     if action[0].upper()=='CREATE':
-        action.pop()
-    if action.pop().upper()!='INDEX':
+        action.pop(0)
+    if action.pop(0).upper()!='INDEX':
         raise Exception('ERROR 1: Invalid syntax.')
 
-    idex_name=action.pop()
+    idex_name=action.pop(0)
 
-    if action.pop().upper()!='ON':
+    if action.pop(0).upper()!='ON':
         raise Exception('ERROR 2: Invalid syntax.')
-    table_name=action.pop()
+    table_name=action.pop(0)
 
     if '(' not in action[0] or ')' not in action[-1]:
         raise Exception('ERROR 3: Invalid syntax.')
     _str=' '.join(action).strip('() ')
     attrs=_str.split(',')
-    attrs=map(str.strip, attrs)
+    attrs=list(map(str.strip, attrs))
     return {
         'mainact': 'create',
         'type': 'index',
@@ -794,16 +832,16 @@ def create_index(action):
 
 def drop_index(action):
     if action[0].upper()=='DROP':
-        action.pop()
+        action.pop(0)
 
-    if action.pop().upper()!='INDEX':
+    if action.pop(0).upper()!='INDEX':
         raise Exception('ERROR 1: Invalid syntax.')
-    idex_name=action.pop()
+    idex_name=action.pop(0)
 
-    if action.pop().upper()!='ON':
+    if action.pop(0).upper()!='ON':
         raise Exception('ERROR 2: Invalid syntax.')
 
-    table_name=action.pop()
+    table_name=action.pop(0)
 
     if action:
         raise Exception('ERROR 3: Invalid syntax.')

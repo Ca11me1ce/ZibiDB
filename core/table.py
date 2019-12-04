@@ -20,6 +20,7 @@ class Table:
         self.uniqueattr = {} # {attribute_name: {attibute_value: primarykey_value}}
         self.index={}   #{attr: idex_name}
         self.BTree={}   #{idex_name: BTree}
+        self.flag = 0
 
         for attr in info['attrs']:
             temp = Attribute(attr)
@@ -28,13 +29,13 @@ class Table:
                 self.uniqueattr[attr['name']] = {}
 
     def add_index(self, attr, idex_name):
-        if attr not in self.uniqueattr.keys():
+        if attr[0] not in self.uniqueattr.keys():
             raise Exception('ERROR: The attr is not unique and cannot create index')
         # If unique:
-        if attr not in self.index:
-            self.index[attr]=idex_name
+        if attr[0] not in self.index:
+            self.index[attr[0]]=idex_name
         # Get pairs {v1:p1, v2:p2,...}
-        nodes=self.uniqueattr[attr]
+        nodes=self.uniqueattr[attr[0]]
 
         # Create a b tree
         t=OOBTree()
@@ -128,6 +129,13 @@ class Table:
             if len(data)!=len(self.attrls):
                 raise Exception('ERROR: Full-attr values is needed')
 
+            dat = data[::]
+            # Get primary-key values
+            for _ in range(len(self.primary)):
+                prmkvalue.append(dat.pop(0))
+            # the remaining data is attr data
+            attvalue=dat
+
             # TODO: typecheck
             for i in data:
                 value = data[i]
@@ -136,17 +144,13 @@ class Table:
                 # If false, raise error in typecheck()
                 # If true, nothing happens and continue
                 # If unique, call self uniquecheck()
-                if value in self.uniqueattr[attname].keys():
-                    raise Exception('ERROR: Unique attribute values are in conflict' + data)
+                if attname in self.uniqueattr.keys():
+                    if value in self.uniqueattr[attname].keys():
+                        raise Exception('ERROR: Unique attribute values are in conflict!  ' + attname + " : " + str(value))
+                    self.uniqueattr[attname][value] = prmkvalue
                 self.attrs[attname].typecheck(value)
                 # If it is not unique, raise error in the function
                 # Else, continue
-            
-            # Get primary-key values
-            for _ in range(len(self.primary)):
-                prmkvalue.append(data.pop(0))
-            # the remaining data is attr data
-            attvalue=data
 
             # Hash data
             self.data[tuple(prmkvalue)]=attvalue
@@ -155,15 +159,27 @@ class Table:
             attrs_dict=dict()
             for name in self.attrls:
                 attrs_dict[name]=None
-            for i in range(len(attrs)):
-                attrs_dict[attrs[i]]=data[i]
 
             # Get primary-key values
             for name in self.primary:
-                if attrs_dict[name]==None:
+                if name not in attrs:
                     raise Exception('ERROR: Primary key cannot be NULL.')
-                prmkvalue.append(attrs_dict[name])
+                prmkvalue.append(data[attrs.index(name)])
 
+            for i in range(len(attrs)):
+                value = data[i]
+                attname = attrs[i]
+
+                if attname in self.uniqueattr.keys():
+                    if value in self.uniqueattr[attname].keys():
+                        raise Exception('ERROR: Unique attribute values are in conflict!  ' + attname + " : " + str(value))
+                    self.uniqueattr[attname][value] = prmkvalue
+                #self.attrs[attname].typecheck(value)
+                self.attrs[attname].typecheck(value)
+
+                attrs_dict[attname] = value
+             # Get primary-key values
+            for name in self.primary:
                 # Pop primary-key value from the full-attr dict
                 attrs_dict.pop(name)
             # The remaining data is attr data
@@ -182,13 +198,44 @@ class Table:
     def deserialize(self):
         pass
     
+    def delete(self, table_name, where):
+        if where == []:
+            self.data = {}
+            self.datalist = []
+            for a in self.uniqueattr.keys():
+                self.uniqueattr[a] = {}
+            #self.BTree
+        elif len(where) > 1:
+            raise Exception('ERROR: Mutiple where conditions is coming soon')
+        elif len(where) == 1:
+            if where[0]['attr'] not in self.primary:
+                raise Exception('ERROR: You should delete by one of the primary key!')
+            else:
+                if where[0]['symbol']=='=':
+                    value=where[0]['value']
+                    try:
+                        value=int(value)
+                    except:
+                        pass
+
+                    del self.data[tuple([value])]
+                    self.df=self.df[self.df[where[0]['attr']]!=value]
+                elif where[0]['symbol']=='<>':
+                    try:
+                        value=int(value)
+                    except:
+                        pass
+                    self.data={self.data[value]}
+                    self.df=self.df[self.df[where[0]['attr']]==value]
+
     def search(self, attr, sym, tag, condition, gb):
         # attr: [] or *
         # situation: number means different conditions
         # gb: true/false have group by
         # condition: [], base on situation
         # df = pd.DataFrame(self.datalist, columns = self.attrls)
-        self.df = pd.DataFrame(self.datalist, columns = self.attrls)
+        if self.flag == 0:
+            self.df = pd.DataFrame(self.datalist, columns = self.attrls)
         symbols = {
             '=': 1,
             '>': 2,
@@ -199,7 +246,6 @@ class Table:
             'NOT LIKE': 7,
             '<>': 8
         }
-
         if len(sym) == 0:
             situation = 0
         else:
@@ -209,10 +255,6 @@ class Table:
         else:
             temp = self.df
 
-
-        print ("situation")
-        print (situation)
-
         if situation == 0:  # no where
             if attr == ['*']:
                 return temp
@@ -220,81 +262,68 @@ class Table:
                 return temp.loc[:, attr]
 
         if situation == 1:
-            print("condition")
-            print(condition)
-            condition[1] = 1
-            condition[0] = 'id'
-            print("conditionnew")
-            print(condition)
-            print(tag)
-            print(gb)
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]] == temp[condition[1]]]
                 return temp.loc[temp[condition[0]] == temp[condition[1]], attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]] == condition[1]]
-            print ("ready to return")
-            print(temp)
-            print(condition[0])
-            print(condition[1])
-            print(temp.loc[temp[condition[0]] == condition[1], attr])
             return temp.loc[temp[condition[0]] == condition[1], attr]
         if situation == 2:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]] > temp[condition[1]]]
                 return temp.loc[temp[condition[0]] > temp[condition[1]], attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]] > condition[1]]
             return temp.loc[temp[condition[0]] > condition[1], attr]
         if situation == 3:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]] >= temp[condition[1]]]
                 return temp.loc[temp[condition[0]] >= temp[condition[1]], attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]] >= condition[1]]
             return temp.loc[temp[condition[0]] >= condition[1], attr]
         if situation == 4:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]] < temp[condition[1]]]
                 return temp.loc[temp[condition[0]] < temp[condition[1]], attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]] < condition[1]]
             return temp.loc[temp[condition[0]] < condition[1], attr]
         if situation == 5:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]] <= temp[condition[1]]]
                 return temp.loc[temp[condition[0]] <= temp[condition[1]], attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]] <= condition[1]]
             return temp.loc[temp[condition[0]] <= condition[1], attr]
         if situation == 8:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]] != temp[condition[1]]]
                 return temp.loc[temp[condition[0]] != temp[condition[1]], attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]] != condition[1]]
             return temp.loc[temp[condition[0]] != condition[1], attr]
 
         if situation == 6:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[temp[condition[0]].str.contains(temp[condition[1]])]
                 return temp.loc[temp[condition[0]].str.contains(temp[condition[1]]), attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[temp[condition[0]].str.contains(condition[1])]
             return temp.loc[temp[condition[0]].str.contains(condition[1]), attr]
         if situation == 7:
             if tag:
-                if attr == '*':
+                if attr == ['*']:
                     return temp.loc[~temp[condition[0]].str.contains(temp[condition[1]])]
                 return temp.loc[~temp[condition[0]].str.contains(temp[condition[1]]), attr]
-            if attr == '*':
+            if attr == ['*']:
                 return temp.loc[~temp[condition[0]].str.contains(condition[1]), attr]
             return temp.loc[~temp[condition[0]].str.contains(condition[1]), attr]
 
@@ -329,11 +358,6 @@ class Table:
             return gb[attr].sum()
         if situation == 4:
             return gb[attr].value_counts()
-
-    def df_and(self, df1, df2, attrs):
-        return pd.merge(df1, df2, on=attrs)
-    def df_or(self, df1, df2):
-        return pd.merge(df1, df2, how='outer')
 
     def table_join(self, table, attr):
         df1 = pd.DataFrame(self.data)
